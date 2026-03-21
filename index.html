@@ -1,0 +1,2253 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<title>Gestione</title>
+<style>
+*, *::before, *::after {
+  box-sizing: border-box; margin: 0; padding: 0;
+  -webkit-tap-highlight-color: transparent;
+}
+
+/* iOS overrides font on all form/input elements unless set directly */
+html, body,
+input, input::placeholder,
+select, select option,
+textarea, textarea::placeholder,
+button {
+  font-family: -apple-system, "SF Pro Display", "SF Pro Text", BlinkMacSystemFont, "Helvetica Neue", sans-serif !important;
+  -webkit-font-smoothing: antialiased;
+}
+
+:root {
+  --font: -apple-system, "SF Pro Display", "SF Pro Text", BlinkMacSystemFont, "Helvetica Neue", sans-serif;
+  --bg:           #F2F2F7;
+  --card:         #FFFFFF;
+  --border-light: #E5E5EA;
+  --blue:         #007AFF;
+  --green:        #34C759;
+  --red:          #FF3B30;
+  --orange:       #FF9500;
+  --muted:        #8E8E93;
+  --text:         #000000;
+  --safe-top: env(safe-area-inset-top, 44px);
+  --safe-bot: env(safe-area-inset-bottom, 0px);
+}
+
+html, body {
+  font-family: var(--font);
+  background: var(--bg);
+  color: var(--text);
+  height: 100%; height: 100dvh;
+  overflow: hidden;
+  -webkit-font-smoothing: antialiased;
+  -webkit-text-size-adjust: 100%;
+}
+
+/* ══════════════════════════════
+   SCREEN SYSTEM
+══════════════════════════════ */
+.screen {
+  position: fixed; inset: 0;
+  background: var(--bg);
+  overflow-y: auto; overflow-x: hidden;
+  -webkit-overflow-scrolling: touch;
+  transition: transform .38s cubic-bezier(.4,0,.2,1), opacity .38s;
+  will-change: transform;
+  padding-bottom: calc(48px + var(--safe-bot));
+}
+.screen.hidden-right { transform: translateX(100%); pointer-events: none; }
+.screen.hidden-left  { transform: translateX(-6%) scale(.97); opacity: .6; pointer-events: none; }
+
+/* ══════════════════════════════
+   HEADERS
+══════════════════════════════ */
+.home-hdr {
+  position: sticky; top: 0; z-index: 100;
+  background: rgba(242,242,247,0.92);
+  backdrop-filter: saturate(180%) blur(20px);
+  -webkit-backdrop-filter: saturate(180%) blur(20px);
+  border-bottom: 0.5px solid var(--border-light);
+  padding: calc(var(--safe-top) + 12px) 20px 14px;
+}
+.home-hdr h1 { font-family: var(--font); font-size: 28px; font-weight: 700; letter-spacing: -0.5px; }
+.home-hdr p  { font-family: var(--font); font-size: 14px; color: var(--muted); margin-top: 2px; }
+
+.hdr {
+  position: sticky; top: 0; z-index: 100;
+  background: rgba(242,242,247,0.92);
+  backdrop-filter: saturate(180%) blur(20px);
+  -webkit-backdrop-filter: saturate(180%) blur(20px);
+  border-bottom: 0.5px solid var(--border-light);
+  padding: calc(var(--safe-top) + 12px) 20px 13px;
+  display: flex; align-items: center; gap: 8px;
+}
+.hdr-back {
+  display: flex; align-items: center; gap: 3px;
+  color: var(--blue); font-family: var(--font); font-size: 17px; font-weight: 400;
+  background: none; border: none; cursor: pointer; padding: 0; flex-shrink: 0;
+}
+.hdr-back svg { width: 10px; height: 17px; }
+.hdr-title { font-family: var(--font); font-size: 17px; font-weight: 600; letter-spacing: -0.2px; flex: 1; }
+
+/* ══════════════════════════════
+   HOME CARDS
+══════════════════════════════ */
+#screen-home { display: flex; flex-direction: column; padding-bottom: calc(40px + var(--safe-bot)); }
+.home-cards { display: flex; flex-direction: column; gap: 14px; padding: 24px 20px; }
+
+.big-card {
+  position: relative; overflow: hidden;
+  border-radius: 20px;
+  aspect-ratio: 1 / 1;
+  display: flex; flex-direction: column; justify-content: flex-end;
+  padding: 28px 30px;
+  cursor: pointer; -webkit-user-select: none; user-select: none;
+  background: #FFFFFF;
+  box-shadow: 0 1px 0 rgba(0,0,0,0.04), 0 2px 16px rgba(0,0,0,0.07);
+  transition: background .18s, box-shadow .18s, transform .18s;
+}
+.big-card:active { background: #E5E5EA; box-shadow: 0 1px 4px rgba(0,0,0,0.06); transform: scale(.985); }
+.big-card-title { font-family: var(--font); font-size: 28px; font-weight: 700; color: #000; letter-spacing: -0.6px; line-height: 1.1; }
+.big-card-sub   { font-family: var(--font); font-size: 14px; color: var(--muted); margin-top: 6px; line-height: 1.45; }
+.big-card-arrow {
+  position: absolute; top: 26px; right: 26px;
+  width: 30px; height: 30px; border-radius: 50%;
+  background: #F2F2F7;
+  display: flex; align-items: center; justify-content: center;
+  transition: background .18s;
+}
+.big-card:active .big-card-arrow { background: #D1D1D6; }
+.big-card-arrow svg { width: 11px; height: 11px; fill: none; stroke: #8E8E93; stroke-width: 2.5; stroke-linecap: round; stroke-linejoin: round; }
+.big-card-badge {
+  position: absolute; top: 26px; left: 28px;
+  background: #F2F2F7; border-radius: 20px; padding: 4px 11px;
+  font-family: var(--font); font-size: 12px; font-weight: 500; color: var(--muted);
+  transition: background .18s;
+}
+.big-card:active .big-card-badge { background: #D1D1D6; }
+
+/* ══════════════════════════════
+   DETAIL BODY
+══════════════════════════════ */
+.detail-body { padding: 14px 16px; }
+
+.sec {
+  font-family: var(--font); font-size: 13px; font-weight: 600;
+  color: var(--muted); letter-spacing: .2px; text-transform: uppercase;
+  margin: 20px 4px 8px;
+}
+.sec:first-child { margin-top: 6px; }
+
+/* ── GROUPED CARD ── */
+.card { background: var(--card); border-radius: 13px; overflow: hidden; margin-bottom: 10px; }
+
+.row {
+  display: flex; align-items: center; gap: 10px;
+  padding: 12px 16px;
+  border-bottom: 0.5px solid var(--border-light);
+  min-height: 48px; background: var(--card);
+}
+.row:last-child { border-bottom: none; }
+
+.row-label {
+  font-family: var(--font); font-size: 16px; font-weight: 400;
+  color: var(--text); white-space: nowrap; min-width: 110px; flex-shrink: 0;
+}
+.row-label.sm { min-width: 0; font-size: 15px; }
+
+.row input, .row select {
+  flex: 1; border: none; outline: none; background: transparent;
+  font-family: var(--font); font-size: 16px; color: var(--text);
+  text-align: right; min-width: 0; -webkit-appearance: none;
+}
+.row input::placeholder { color: var(--muted); font-family: var(--font); }
+.row select { cursor: pointer; font-family: var(--font); }
+.row select option { font-family: var(--font); color: #000; }
+.row input[type="number"] { -moz-appearance: textfield; }
+.row input[type="number"]::-webkit-inner-spin-button,
+.row input[type="number"]::-webkit-outer-spin-button { -webkit-appearance: none; }
+
+.suffix { font-family: var(--font); font-size: 16px; color: var(--muted); flex-shrink: 0; }
+
+.row-ta { align-items: flex-start; padding-top: 14px; padding-bottom: 14px; }
+.row-ta textarea {
+  flex: 1; border: none; outline: none; background: transparent;
+  font-family: var(--font); font-size: 16px; color: var(--text);
+  text-align: right; resize: none; min-height: 56px; line-height: 1.5;
+}
+.row-ta textarea::placeholder { color: var(--muted); font-family: var(--font); }
+
+/* ── SUBCARD ── */
+.subcard { background: var(--card); border-radius: 13px; overflow: hidden; margin-bottom: 8px; }
+.subcard-head {
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 12px 16px; border-bottom: 0.5px solid var(--border-light);
+}
+.subcard-title { font-family: var(--font); font-size: 15px; font-weight: 600; color: var(--text); }
+
+/* ── STEPPER ── */
+.stepper { display: flex; align-items: center; background: #F2F2F7; border-radius: 9px; overflow: hidden; }
+.step-btn {
+  width: 34px; height: 34px; border: none; background: transparent;
+  font-family: var(--font); font-size: 20px; font-weight: 300;
+  color: var(--blue); cursor: pointer; display: flex; align-items: center; justify-content: center;
+  transition: background .12s; flex-shrink: 0;
+}
+.step-btn:active { background: #D1D1D6; }
+.step-val {
+  min-width: 28px; text-align: center;
+  font-family: var(--font); font-size: 16px; font-weight: 600; color: var(--text);
+  cursor: pointer; padding: 0 2px;
+}
+.step-val-input {
+  width: 36px; text-align: center;
+  font-family: var(--font); font-size: 16px; font-weight: 600; color: var(--text);
+  border: none; outline: none; background: transparent;
+  -moz-appearance: textfield;
+}
+.step-val-input::-webkit-inner-spin-button,
+.step-val-input::-webkit-outer-spin-button { -webkit-appearance: none; }
+
+/* ── STAFF ROWS ── */
+.spesa-row {
+  display: flex; align-items: center;
+  border-bottom: 0.5px solid var(--border-light); background: var(--card);
+}
+.spesa-row:last-child { border-bottom: none; }
+.staff-num {
+  font-family: var(--font); font-size: 12px; font-weight: 600; color: var(--muted);
+  width: 30px; text-align: center; flex-shrink: 0; padding-left: 14px;
+}
+.inp-nome {
+  flex: 1; padding: 12px 8px 12px 6px;
+  border: none; outline: none; background: transparent;
+  font-family: var(--font); font-size: 15px; color: var(--text); min-width: 0;
+}
+.inp-nome::placeholder { color: var(--muted); font-family: var(--font); }
+.inp-price {
+  width: 72px; padding: 12px 4px 12px 8px;
+  border: none; outline: none; background: transparent;
+  font-family: var(--font); font-size: 15px; font-weight: 500;
+  color: var(--text); text-align: right; flex-shrink: 0;
+  -moz-appearance: textfield;
+}
+.inp-price::placeholder { color: var(--muted); font-family: var(--font); }
+.inp-price::-webkit-inner-spin-button,
+.inp-price::-webkit-outer-spin-button { -webkit-appearance: none; }
+.spesa-eur { font-family: var(--font); font-size: 15px; color: var(--muted); padding-right: 14px; flex-shrink: 0; }
+
+.vdivider { width: 0.5px; height: 22px; background: var(--border-light); flex-shrink: 0; }
+
+.btn-del-row {
+  width: 44px; min-height: 44px; display: flex; align-items: center; justify-content: center;
+  border: none; background: transparent; color: var(--red);
+  font-family: var(--font); font-size: 18px; cursor: pointer; flex-shrink: 0;
+}
+
+/* ── EXTRA ADD BUTTON ── */
+.btn-add-ext {
+  display: flex; align-items: center; justify-content: center; gap: 6px;
+  width: 100%; padding: 12px 16px;
+  border: none; background: transparent;
+  font-family: var(--font); font-size: 15px; font-weight: 500; color: var(--blue);
+  cursor: pointer; border-top: 0.5px solid var(--border-light);
+  transition: background .14s;
+}
+.btn-add-ext:active { background: #F2F2F7; }
+
+/* ── TOTAL BAR ── */
+.tot-bar {
+  display: flex; justify-content: space-between; align-items: center;
+  padding: 14px 18px; background: var(--card); border-radius: 13px; margin-bottom: 10px;
+}
+.tot-bar .tl { font-family: var(--font); font-size: 15px; font-weight: 500; color: var(--muted); }
+.tot-bar .tv { font-family: var(--font); font-size: 20px; font-weight: 700; color: var(--text); letter-spacing: -0.3px; }
+
+/* ── SUBMIT ── */
+.btn-submit {
+  width: 100%; padding: 16px; border: none; border-radius: 13px;
+  font-family: var(--font); font-size: 17px; font-weight: 600;
+  cursor: pointer; letter-spacing: -0.2px;
+  transition: opacity .15s, transform .15s; margin-top: 4px;
+}
+.btn-submit:active { opacity: .8; transform: scale(.98); }
+.btn-ev  { background: var(--blue);  color: #fff; }
+.btn-nol { background: var(--green); color: #fff; }
+
+/* ── ACTIVE EVENT BANNER ── */
+.active-event-banner {
+  background: var(--card); border-radius: 13px; overflow: hidden;
+  margin-bottom: 14px;
+  border-left: 4px solid var(--orange);
+}
+.aeb-head {
+  padding: 13px 16px 10px;
+  display: flex; justify-content: space-between; align-items: flex-start;
+}
+.aeb-label { font-family: var(--font); font-size: 11px; font-weight: 600; color: var(--orange); letter-spacing: .4px; text-transform: uppercase; }
+.aeb-title { font-family: var(--font); font-size: 17px; font-weight: 600; color: var(--text); margin-top: 2px; }
+.aeb-date  { font-family: var(--font); font-size: 13px; color: var(--muted); margin-top: 2px; }
+.aeb-btn {
+  flex-shrink: 0; margin-left: 12px;
+  padding: 7px 14px; border-radius: 8px; border: none;
+  background: rgba(255,149,0,.12); color: var(--orange);
+  font-family: var(--font); font-size: 13px; font-weight: 600; cursor: pointer;
+  transition: background .15s;
+}
+.aeb-btn:active { background: rgba(255,149,0,.24); }
+
+/* ── HISTORY REC ── */
+.rec-list { display: flex; flex-direction: column; gap: 8px; }
+.rec {
+  background: var(--card); border-radius: 13px; padding: 14px 16px;
+  animation: fup .2s ease;
+}
+@keyframes fup { from{opacity:0;transform:translateY(6px)} to{opacity:1;transform:translateY(0)} }
+.rec-top { font-family: var(--font); font-size: 15px; font-weight: 600; display: flex; justify-content: space-between; align-items: flex-start; gap: 8px; }
+.rec-meta { font-family: var(--font); font-size: 13px; color: var(--muted); margin-top: 5px; line-height: 1.65; }
+.pill { font-family: var(--font); font-size: 11px; font-weight: 600; padding: 3px 9px; border-radius: 20px; white-space: nowrap; flex-shrink: 0; }
+.pill-ev  { background: rgba(0,122,255,.1);  color: var(--blue); }
+.pill-nol { background: rgba(52,199,89,.12); color: #1a7a34; }
+.pill-tot { background: rgba(0,0,0,.06); color: #444; }
+
+/* ── CFG BANNER ── */
+.cfg-banner {
+  padding: 12px 15px; background: rgba(255,149,0,.1); border: 1px solid rgba(255,149,0,.3);
+  border-radius: 10px; font-family: var(--font); font-size: 13px; color: #c67000; line-height: 1.5;
+  margin-bottom: 12px;
+}
+
+/* ── TOAST ── */
+.toast {
+  position: fixed; bottom: calc(28px + var(--safe-bot)); left: 50%;
+  transform: translateX(-50%) translateY(60px);
+  background: rgba(50,50,55,0.95); backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px);
+  color: #fff; padding: 12px 22px; border-radius: 50px;
+  font-family: var(--font); font-size: 14px; font-weight: 500; white-space: nowrap; z-index: 999;
+  transition: transform .3s cubic-bezier(.34,1.56,.64,1), opacity .3s; opacity: 0;
+}
+.toast.show { transform: translateX(-50%) translateY(0); opacity: 1; }
+.toast.err  { background: rgba(255,59,48,.92); }
+
+/* ── SPINNER ── */
+.spin {
+  width: 18px; height: 18px;
+  border: 2px solid rgba(255,255,255,.35); border-top-color: #fff;
+  border-radius: 50%; animation: rot .7s linear infinite;
+  display: inline-block; vertical-align: middle;
+}
+@keyframes rot { to { transform: rotate(360deg); } }
+
+/* ── NOL RADIO ── */
+.nol-radio-lbl {
+  flex: 1; padding: 13px 0; text-align: center;
+  font-family: var(--font); font-size: 15px; font-weight: 500;
+  color: var(--muted); cursor: pointer;
+  border-right: 0.5px solid var(--border-light);
+  transition: all .18s;
+}
+.nol-radio-lbl:last-child { border-right: none; }
+.active-nol-radio { color: var(--green); font-weight: 600; background: rgba(52,199,89,0.07); }
+.aeb-toggle-row {
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 10px 16px 14px;
+  border-top: 0.5px solid rgba(0,0,0,0.06);
+}
+.aeb-toggle-label {
+  font-size: 15px; font-weight: 500; color: var(--text);
+}
+.toggle-switch {
+  position: relative; display: inline-block;
+  width: 51px; height: 31px; flex-shrink: 0;
+}
+.toggle-switch input { opacity: 0; width: 0; height: 0; }
+.toggle-thumb {
+  position: absolute; inset: 0;
+  background: #E5E5EA; border-radius: 31px;
+  transition: background .22s;
+  cursor: pointer;
+}
+.toggle-thumb::before {
+  content: "";
+  position: absolute; width: 27px; height: 27px;
+  left: 2px; top: 2px;
+  background: #fff;
+  border-radius: 50%;
+  box-shadow: 0 2px 4px rgba(0,0,0,0.22);
+  transition: transform .22s cubic-bezier(.4,0,.2,1);
+}
+.toggle-switch input:checked + .toggle-thumb { background: var(--orange); }
+.toggle-switch input:checked + .toggle-thumb::before { transform: translateX(20px); }
+
+/* locked state for dettagli card */
+.card-locked { opacity: 0.4; pointer-events: none; transition: opacity .22s; }
+.card-locked * { cursor: default !important; }
+
+/* ── PRINT / PDF ── */
+@media print {
+  @page {
+    size: A4 portrait;
+    margin: 15mm;
+  }
+
+  html.printing body > *:not(#pdf-preview) {
+    display: none !important;
+  }
+
+  html.printing #pdf-preview {
+    display: block !important;
+    position: static !important;
+    overflow: visible !important;
+    height: auto !important;
+    background: #fff;
+    padding: 0; margin: 0;
+  }
+
+  html.printing #pdf-preview > div {
+    max-width: 100% !important;
+    width: 100% !important;
+    padding: 0 !important;
+    margin: 0 !important;
+  }
+
+  body * { visibility: hidden; }
+  #pdf-preview, #pdf-preview * { visibility: visible; }
+  #pdf-preview {
+    position: static !important;
+    overflow: visible !important;
+    height: auto !important;
+    background: #fff;
+  }
+
+  .no-print { display: none !important; }
+
+  .pdf-page-1 {
+    page-break-after: always;
+    break-after: page;
+  }
+  .pdf-page-2 {
+    page-break-before: always;
+    break-before: page;
+    display: block !important;
+  }
+}
+
+/* ── PHOTO LIGHTBOX ── */
+#photo-lightbox {
+  display:none; position:fixed; inset:0; z-index:10000;
+  background:rgba(0,0,0,0.92);
+  flex-direction:column; align-items:center; justify-content:center;
+  padding:20px;
+}
+#photo-lightbox img {
+  max-width:100%; max-height:75vh;
+  object-fit:contain; border-radius:12px;
+}
+#photo-lightbox-cap {
+  color:#fff; font-family:var(--font); font-size:15px;
+  font-weight:500; margin-top:16px; text-align:center;
+}
+#photo-lightbox-close {
+  position:absolute; top:calc(var(--safe-top) + 16px); right:20px;
+  width:36px; height:36px; border-radius:50%; border:none;
+  background:rgba(255,255,255,0.15); color:#fff;
+  font-size:18px; cursor:pointer; display:flex; align-items:center; justify-content:center;
+}
+</style>
+</head>
+<body>
+
+<!-- ══════════════════════════════
+     SCREEN HOME
+══════════════════════════════ -->
+<div class="screen" id="screen-home">
+  <div class="home-hdr">
+    <div style="display:flex;align-items:center;justify-content:space-between;gap:12px">
+      <div>
+        <h1>Gestione</h1>
+        <p>Seleziona una categoria</p>
+      </div>
+      <button onclick="syncFromSheets()" style="
+        background:#F2F2F7;border:none;border-radius:50%;
+        width:36px;height:36px;display:flex;align-items:center;justify-content:center;
+        cursor:pointer;flex-shrink:0;font-size:16px;" title="Sincronizza">↻</button>
+    </div>
+    <div id="sync-banner" style="display:none;align-items:center;gap:8px;
+         margin-top:8px;font-size:12px;color:var(--muted);">
+      <span class="spin" style="width:12px;height:12px;border-width:1.5px"></span>
+      Sincronizzazione in corso…
+    </div>
+  </div>
+  <div class="home-cards">
+    <div class="big-card" onclick="openScreen('ev')">
+      <div class="big-card-badge" id="badge-ev">0 salvati</div>
+      <div class="big-card-arrow"><svg viewBox="0 0 11 11"><polyline points="3,1 8,5.5 3,10"/></svg></div>
+      <div class="big-card-title">Evento</div>
+      <div class="big-card-sub">Data, luogo, ricorrenza,<br>staff e costi</div>
+    </div>
+    <div class="big-card" onclick="openScreen('nol')">
+      <div class="big-card-badge" id="badge-nol">0 salvati</div>
+      <div class="big-card-arrow"><svg viewBox="0 0 11 11"><polyline points="3,1 8,5.5 3,10"/></svg></div>
+      <div class="big-card-title">Noleggio</div>
+      <div class="big-card-sub">Cliente, articolo,<br>date e costo</div>
+    </div>
+  </div>
+</div>
+
+<!-- ══════════════════════════════
+     SCREEN EVENTO HOME
+══════════════════════════════ -->
+<div class="screen hidden-right" id="screen-ev-home">
+  <div class="hdr">
+    <button class="hdr-back" onclick="goHome()">
+      <svg viewBox="0 0 10 17" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="8,1 2,8.5 8,16"/></svg>
+      Home
+    </button>
+    <div class="hdr-title">Evento</div>
+  </div>
+  <div class="home-cards" style="padding-top:20px">
+
+    <div class="big-card" onclick="openEvForm('new')">
+      <div class="big-card-arrow"><svg viewBox="0 0 11 11"><polyline points="3,1 8,5.5 3,10"/></svg></div>
+      <div class="big-card-title">Nuovo Evento</div>
+      <div class="big-card-sub">Crea un nuovo evento,<br>aggiungi staff e costi</div>
+    </div>
+
+    <div class="big-card" id="ev-modifica-card" onclick="openEvForm('edit')">
+      <div class="big-card-badge" id="badge-active-ev" style="display:none">0 attivi</div>
+      <div class="big-card-arrow"><svg viewBox="0 0 11 11"><polyline points="3,1 8,5.5 3,10"/></svg></div>
+      <div class="big-card-title" style="color:#000">Modifica Evento</div>
+      <div class="big-card-sub">Aggiorna un evento<br>in corso</div>
+    </div>
+
+  </div>
+</div>
+
+<!-- ══════════════════════════════
+     SCREEN SELEZIONE EVENTO (modifica)
+══════════════════════════════ -->
+<div class="screen hidden-right" id="screen-ev-pick">
+  <div class="hdr">
+    <button class="hdr-back" onclick="goEvHome()">
+      <svg viewBox="0 0 10 17" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="8,1 2,8.5 8,16"/></svg>
+      Evento
+    </button>
+    <div class="hdr-title">Seleziona evento</div>
+  </div>
+  <div class="detail-body">
+    <div class="sec">eventi in corso</div>
+    <div class="rec-list" id="list-pick-ev">
+      <div style="color:var(--muted);font-size:14px;text-align:center;padding:32px 0">Nessun evento attivo</div>
+    </div>
+  </div>
+</div>
+
+<!-- ══════════════════════════════
+     SCREEN EVENTO — FORM
+══════════════════════════════ -->
+<div class="screen hidden-right" id="screen-ev">
+  <div class="hdr">
+    <button class="hdr-back" id="ev-form-back" onclick="goEvBack()">
+      <svg viewBox="0 0 10 17" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="8,1 2,8.5 8,16"/></svg>
+      <span id="ev-form-back-label">Evento</span>
+    </button>
+    <div class="hdr-title" id="ev-hdr-title">Nuovo Evento</div>
+  </div>
+
+  <div class="detail-body">
+
+    <!-- ACTIVE EVENT EDIT BANNER (shown when editing existing) -->
+    <div id="active-ev-banner" style="display:none">
+      <div class="active-event-banner">
+        <div class="aeb-head">
+          <div>
+            <div class="aeb-label">Evento in corso — modificabile</div>
+            <div class="aeb-title" id="aeb-title">—</div>
+            <div class="aeb-date" id="aeb-date">—</div>
+          </div>
+          <button class="aeb-btn" onclick="cancelEdit()">Annulla</button>
+        </div>
+        <div class="aeb-toggle-row">
+          <span class="aeb-toggle-label">Modifica dati testata</span>
+          <label class="toggle-switch">
+            <input type="checkbox" id="toggle-testata" onchange="toggleTestata(this.checked)">
+            <span class="toggle-thumb"></span>
+          </label>
+        </div>
+      </div>
+    </div>
+
+
+    <div class="sec">dettagli</div>
+    <div class="card" id="dettagli-card">
+      <div class="row">
+        <span class="row-label">Data</span>
+        <input type="date" id="ev-data">
+      </div>
+      <div class="row">
+        <span class="row-label">Luogo</span>
+        <input type="text" id="ev-luogo" placeholder="Es. Villa Rossi, Milano" autocomplete="off">
+      </div>
+      <div class="row">
+        <span class="row-label">Nome e Cognome</span>
+        <input type="text" id="ev-cliente" placeholder="Mario Rossi" autocomplete="off">
+      </div>
+      <div class="row">
+        <span class="row-label">Telefono</span>
+        <input type="tel" id="ev-telefono" placeholder="333 1234567" autocomplete="off">
+      </div>
+      <div class="row">
+        <span class="row-label">Tipo evento</span>
+        <input type="text" id="ev-ricorrenza" placeholder="Es. Matrimonio, Cena aziendale…" autocomplete="off">
+      </div>
+      <div class="row">
+        <span class="row-label" style="min-width:0;flex:1">Numero di Persone</span>
+        <div class="stepper">
+          <button class="step-btn" onclick="stepVal('persone',-1)">−</button>
+          <span class="step-val" id="persone-count" onclick="editStepNum('persone')">0</span>
+          <button class="step-btn" onclick="stepVal('persone',1)">+</button>
+        </div>
+      </div>
+      <div class="row">
+        <span class="row-label" style="min-width:0;flex:1">Prezzo a Persona</span>
+        <input type="number" id="ev-prezzo-persona" placeholder="0" min="0" step="0.01"
+          style="flex:none;width:80px;text-align:right">
+        <span class="suffix">€</span>
+      </div>
+    </div>
+
+    <!-- STAFF DI SALA -->
+    <div class="sec">staff di sala</div>
+    <div class="subcard">
+      <div class="subcard-head">
+        <span class="subcard-title">Quante persone saranno impiegate?</span>
+        <div class="stepper">
+          <button class="step-btn" onclick="stepStaff('cam',-1)">−</button>
+          <span class="step-val" id="cam-count" onclick="editStepVal('cam')">0</span>
+          <button class="step-btn" onclick="stepStaff('cam',1)">+</button>
+        </div>
+      </div>
+      <div id="cam-list"></div>
+    </div>
+
+    <!-- CUCINA -->
+    <div class="sec">cucina</div>
+    <div class="subcard">
+      <div class="subcard-head">
+        <span class="subcard-title">Quante persone saranno impiegate?</span>
+        <div class="stepper">
+          <button class="step-btn" onclick="stepStaff('cuc',-1)">−</button>
+          <span class="step-val" id="cuc-count" onclick="editStepVal('cuc')">0</span>
+          <button class="step-btn" onclick="stepStaff('cuc',1)">+</button>
+        </div>
+      </div>
+      <div id="cuc-list"></div>
+    </div>
+
+    <!-- COSTI EXTRA -->
+    <div class="sec">costi extra</div>
+    <div class="subcard" id="ext-subcard">
+      <div id="ext-list"></div>
+      <button class="btn-add-ext" onclick="addExt()">＋ Aggiungi spesa</button>
+    </div>
+
+    <!-- TOTALE -->
+    <div class="tot-bar">
+      <span class="tl">Totale spese</span>
+      <span class="tv" id="ev-grandtot">€ 0,00</span>
+    </div>
+
+    <div class="card" style="margin-bottom:10px">
+      <div class="row row-ta">
+        <span class="row-label">Note</span>
+        <textarea id="ev-note" placeholder="Dettagli aggiuntivi…"></textarea>
+      </div>
+    </div>
+
+    <button class="btn-submit btn-ev" id="btn-ev" onclick="submitEvento()">Salva su Google Fogli</button>
+
+    <!-- PAST EVENTS -->
+    <div class="sec">storico</div>
+    <div class="rec-list" id="list-ev"></div>
+  </div>
+</div>
+
+<!-- ══════════════════════════════
+     SCREEN NOLEGGIO
+══════════════════════════════ -->
+<div class="screen hidden-right" id="screen-nol">
+  <div class="hdr">
+    <button class="hdr-back" onclick="goHome()">
+      <svg viewBox="0 0 10 17" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="8,1 2,8.5 8,16"/></svg>
+      Home
+    </button>
+    <div class="hdr-title">Noleggio</div>
+  </div>
+
+  <div class="detail-body">
+
+    <div class="sec">cliente</div>
+    <div class="card">
+      <div class="row">
+        <span class="row-label">Nome e Cognome</span>
+        <input type="text" id="nol-cliente" placeholder="Mario Rossi" autocomplete="off">
+      </div>
+      <div class="row">
+        <span class="row-label">Telefono</span>
+        <input type="tel" id="nol-telefono" placeholder="333 1234567" autocomplete="off">
+      </div>
+    </div>
+
+    <div class="sec">data noleggio</div>
+    <div class="card">
+      <div class="row">
+        <span class="row-label">Data</span>
+        <input type="date" id="nol-data">
+      </div>
+    </div>
+
+    <!-- RITIRO / CONSEGNA -->
+    <div class="sec">modalità</div>
+    <div class="card">
+      <!-- Radio selector -->
+      <div class="row" style="gap:0;padding:0">
+        <label id="lbl-ritiro" class="nol-radio-lbl active-nol-radio" onclick="setModalita('ritiro')">
+          <input type="radio" name="nol-modalita" value="ritiro" id="nol-rad-ritiro" checked style="display:none">
+          Ritiro
+        </label>
+        <label id="lbl-consegna" class="nol-radio-lbl" onclick="setModalita('consegna')">
+          <input type="radio" name="nol-modalita" value="consegna" id="nol-rad-consegna" style="display:none">
+          Consegna
+        </label>
+      </div>
+      <div class="row">
+        <span class="row-label">Ora</span>
+        <input type="time" id="nol-ora" style="flex:1;min-width:0;border:none;outline:none;background:transparent;font-family:var(--font);font-size:16px;color:var(--text);text-align:right">
+      </div>
+      <div id="nol-luogo-ritiro">
+        <div class="row">
+          <span class="row-label">Luogo</span>
+          <input type="text" id="nol-luogo" placeholder="Indirizzo…" autocomplete="off">
+        </div>
+      </div>
+      <div id="nol-luogo-consegna" style="display:none">
+        <div class="row">
+          <span class="row-label">Comune</span>
+          <input type="text" id="nol-comune" placeholder="Es. Cosenza" autocomplete="off">
+        </div>
+        <div class="row">
+          <span class="row-label">Via</span>
+          <input type="text" id="nol-via" placeholder="Es. Via Roma" autocomplete="off">
+        </div>
+        <div class="row">
+          <span class="row-label">Nr. Civico</span>
+          <input type="text" id="nol-civico" placeholder="Es. 10" autocomplete="off">
+        </div>
+      </div>
+      <!-- Campi km — visibili solo con Consegna -->
+      <div id="nol-km-section" style="display:none">
+        <div class="row">
+          <span class="row-label">Km percorsi</span>
+          <input type="number" id="nol-km" placeholder="0" min="0" step="1" oninput="calcTrasporto()">
+        </div>
+        <div class="row">
+          <span class="row-label">€ / Km</span>
+          <input type="number" id="nol-costo-km" placeholder="0,00" min="0" step="0.01" oninput="calcTrasporto()">
+          <span class="suffix">€</span>
+        </div>
+        <div class="row">
+          <span class="row-label" style="color:var(--muted);font-size:14px">Spese trasporto</span>
+          <span id="nol-trasporto-display" style="font-size:16px;font-weight:600;color:var(--text)">€ 0,00</span>
+        </div>
+      </div>
+    </div>
+
+    <div class="sec">attrezzatura</div>
+    <div class="subcard" id="nol-items-card">
+      <div id="nol-items-list"></div>
+      <button class="btn-add-ext" onclick="addNolItem()">＋ Aggiungi articolo</button>
+    </div>
+
+    <div class="tot-bar">
+      <span class="tl">Totale noleggio</span>
+      <span class="tv" id="nol-totale">€ 0,00</span>
+    </div>
+
+    <div class="card">
+      <div class="row">
+        <span class="row-label">Stato</span>
+        <select id="nol-stato">
+          <option value="Confermato">Confermato</option>
+          <option value="In attesa">In attesa</option>
+          <option value="Completato">Completato</option>
+          <option value="Annullato">Annullato</option>
+        </select>
+      </div>
+    </div>
+
+    <div class="card" style="margin-bottom:10px">
+      <div class="row row-ta">
+        <span class="row-label">Note</span>
+        <textarea id="nol-note" placeholder="Deposito, condizioni…"></textarea>
+      </div>
+    </div>
+
+    <button class="btn-submit btn-nol" id="btn-nol" onclick="submitNoleggio()">Salva su Google Fogli</button>
+    <div class="sec">storico</div>
+    <div class="rec-list" id="list-nol"></div>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+<div id="debug-log" style="display:none;position:fixed;bottom:80px;left:16px;right:16px;background:#1c1c1e;color:#30D158;font-size:11px;font-family:monospace;padding:8px 12px;border-radius:8px;z-index:998;word-break:break-all;"></div>
+
+<script>
+// ══════════════════════════════════════════
+// CONFIG
+// ══════════════════════════════════════════
+const SCRIPT_URL = "https://catering-proxy.recruitingdelizie.workers.dev";
+
+// ══════════════════════════════════════════
+// NAVIGATION
+// ══════════════════════════════════════════
+let currentScreen = "home";
+let evFormMode = "new"; // "new" | "edit"
+
+// ── slide helpers ──
+function slideIn(id) {
+  const el = document.getElementById(id);
+  el.classList.remove("hidden-right");
+  el.scrollTop = 0;
+}
+function slideOut(id) {
+  document.getElementById(id).classList.add("hidden-right");
+}
+function dimLeft(id) {
+  document.getElementById(id).classList.add("hidden-left");
+}
+function undimLeft(id) {
+  document.getElementById(id).classList.remove("hidden-left");
+}
+
+// Home → Ev-home or Nol
+function openScreen(type) {
+  dimLeft("screen-home");
+  if (type === "ev") {
+    slideIn("screen-ev-home");
+    currentScreen = "ev-home";
+    refreshEvHome();
+    syncFromSheets();
+  } else {
+    slideIn("screen-nol");
+    currentScreen = "nol";
+  }
+}
+
+// Ev-home → Nuovo form
+// Ev-home → Pick list
+function openEvForm(mode) {
+  evFormMode = mode;
+  if (mode === "new") {
+    dimLeft("screen-ev-home");
+    resetEvForm();
+    slideIn("screen-ev");
+    currentScreen = "ev";
+    document.getElementById("ev-form-back-label").textContent = "Evento";
+    document.getElementById("ev-hdr-title").textContent = "Nuovo Evento";
+    const btn = document.getElementById("btn-ev");
+    btn.textContent = "Salva su Google Fogli";
+    btn.style.background = "var(--blue)";
+    renderEvRecs();
+  } else {
+    dimLeft("screen-ev-home");
+    slideIn("screen-ev-pick");
+    currentScreen = "ev-pick";
+    renderPickList();
+  }
+}
+
+// Pick → Form (editing)
+function pickAndEdit(recId) {
+  dimLeft("screen-ev-pick");
+  slideIn("screen-ev");
+  currentScreen = "ev";
+  document.getElementById("ev-form-back-label").textContent = "Seleziona";
+  startEdit(recId);
+}
+
+// Back from form
+function goEvBack() {
+  slideOut("screen-ev");
+  if (evFormMode === "edit") {
+    undimLeft("screen-ev-pick");
+    currentScreen = "ev-pick";
+  } else {
+    undimLeft("screen-ev-home");
+    currentScreen = "ev-home";
+  }
+  cancelEdit();
+}
+
+// Back from pick
+function goEvHome() {
+  slideOut("screen-ev-pick");
+  undimLeft("screen-ev-home");
+  currentScreen = "ev-home";
+}
+
+// Back from ev-home or nol → home
+function goHome() {
+  if (currentScreen === "ev-home") { slideOut("screen-ev-home"); }
+  else if (currentScreen === "nol") { slideOut("screen-nol"); }
+  else if (currentScreen === "ev")  { slideOut("screen-ev"); slideOut("screen-ev-pick"); }
+  else if (currentScreen === "ev-pick") { slideOut("screen-ev-pick"); }
+  undimLeft("screen-home");
+  currentScreen = "home";
+  cancelEdit();
+  updateBadges();
+}
+
+let touchStartX = 0;
+document.addEventListener("touchstart", e => { touchStartX = e.touches[0].clientX; }, {passive:true});
+document.addEventListener("touchend", e => {
+  const dx = e.changedTouches[0].clientX - touchStartX;
+  if (touchStartX < 30 && dx > 60) {
+    if (currentScreen === "ev-home" || currentScreen === "nol") goHome();
+    else if (currentScreen === "ev-pick") goEvHome();
+    else if (currentScreen === "ev") goEvBack();
+  }
+}, {passive:true});
+
+// ══════════════════════════════════════════
+// DATE HELPERS
+// ══════════════════════════════════════════
+function todayStr() {
+  return new Date().toISOString().split("T")[0]; // YYYY-MM-DD
+}
+function isActiveEvent(rec) {
+  if (!rec.data) return false;
+  let d;
+  const s = String(rec.data).trim();
+
+  // YYYY-MM-DD
+  if (/^\d{4}-\d{2}-\d{2}/.test(s)) {
+    const p = s.slice(0,10).split("-");
+    d = new Date(+p[0], +p[1]-1, +p[2]);
+  }
+  // DD/MM/YYYY
+  else if (/^\d{1,2}\/\d{1,2}\/\d{4}/.test(s)) {
+    const p = s.split("/");
+    d = new Date(+p[2], +p[1]-1, +p[0]);
+  }
+  // Qualsiasi altro formato (ISO, stringa JS Date, ecc.)
+  else {
+    d = new Date(s);
+  }
+
+  if (!d || isNaN(d.getTime())) return false;
+
+  // Modificabile fino alle 23:59:59 del giorno dopo la data evento
+  const endOfDayAfter = new Date(d.getFullYear(), d.getMonth(), d.getDate() + 1, 23, 59, 59);
+  return new Date() <= endOfDayAfter;
+}
+
+const today = todayStr();
+document.querySelectorAll('input[type="date"]').forEach(el => el.value = today);
+
+// ══════════════════════════════════════════
+// STATE
+// ══════════════════════════════════════════
+let camRows = [], cucRows = [], extRows = [];
+let camCount = 0, cucCount = 0;
+let editingId = null; // ID of event being edited (null = new)
+
+function uid() { return "_" + Math.random().toString(36).slice(2,9); }
+
+// ══════════════════════════════════════════
+// STEPPER
+// ══════════════════════════════════════════
+// ══════════════════════════════════════════
+// PERSONE / PREZZO STEPPERS
+// ══════════════════════════════════════════
+let personeVal = 0, prezzoVal = 0;
+
+function stepVal(type, delta) {
+  if (type === 'persone') {
+    personeVal = Math.max(0, personeVal + delta);
+    setStepDisplay('persone-count', personeVal);
+  } else {
+    prezzoVal = Math.max(0, prezzoVal + delta);
+    setStepDisplay('prezzo-count', prezzoVal);
+  }
+}
+
+function setStepDisplay(id, val) {
+  const el = document.getElementById(id);
+  if (el) el.textContent = val;
+}
+
+function editStepNum(type) {
+  const id = type + '-count';
+  const cur = type === 'persone' ? personeVal : prezzoVal;
+  const el = document.getElementById(id);
+  if (!el) return;
+  el.outerHTML = '<input class="step-val-input" id="' + id + '-inp" type="number" value="' + cur + '" min="0" '
+    + 'onblur="commitStepNum(\'' + type + '\',this.value)" onkeydown="if(event.key===\'Enter\')this.blur()">';
+  const inp = document.getElementById(id + '-inp');
+  if (inp) { inp.focus(); inp.select(); }
+}
+
+function commitStepNum(type, val) {
+  const n = Math.max(0, parseInt(val) || 0);
+  const id = type + '-count';
+  if (type === 'persone') personeVal = n; else prezzoVal = n;
+  const inp = document.getElementById(id + '-inp');
+  if (inp) inp.outerHTML = '<span class="step-val" id="' + id + '" onclick="editStepNum(\'' + type + '\')">' + n + '</span>';
+}
+
+function stepStaff(type, delta) {
+  if (type === "cam") { camCount = Math.max(0, camCount + delta); syncStaff("cam"); }
+  else               { cucCount = Math.max(0, cucCount + delta); syncStaff("cuc"); }
+}
+
+function editStepVal(type) {
+  const cur = type === "cam" ? camCount : cucCount;
+  const span = document.getElementById(type + "-count");
+  span.outerHTML = `<input class="step-val-input" id="${type}-count-inp" type="number" value="${cur}" min="0"
+    onblur="commitStep('${type}',this.value)" onkeydown="if(event.key==='Enter')this.blur()">`;
+  const inp = document.getElementById(type + "-count-inp");
+  inp.focus(); inp.select();
+}
+
+function commitStep(type, val) {
+  const n = Math.max(0, parseInt(val) || 0);
+  if (type === "cam") camCount = n; else cucCount = n;
+  const inp = document.getElementById(type + "-count-inp");
+  if (inp) inp.outerHTML = `<span class="step-val" id="${type}-count" onclick="editStepVal('${type}')">${n}</span>`;
+  syncStaff(type);
+}
+
+function syncStaff(type) {
+  const count = type === "cam" ? camCount : cucCount;
+  const arr   = type === "cam" ? camRows  : cucRows;
+  const el    = document.getElementById(type + "-count");
+  if (el) el.textContent = count;
+  while (arr.length < count) arr.push({ id: uid(), nome: "", price: "" });
+  while (arr.length > count) arr.pop();
+  type === "cam" ? renderCam() : renderCuc();
+}
+
+function renderCam() {
+  const list = document.getElementById("cam-list");
+  if (!camRows.length) { list.innerHTML = ""; calcTotals(); return; }
+  list.innerHTML = camRows.map((r, i) => `
+    <div class="spesa-row">
+      <span class="staff-num">${i + 1}</span>
+      <input class="inp-nome" type="text" placeholder="Nome…"
+        value="${escH(r.nome)}" oninput="upRow('cam','${r.id}','nome',this.value)">
+      <div class="vdivider"></div>
+      <input class="inp-price" type="number" placeholder="0" value="${r.price}"
+        oninput="upRow('cam','${r.id}','price',this.value)">
+      <span class="spesa-eur">€</span>
+    </div>`).join("");
+  calcTotals();
+}
+
+function renderCuc() {
+  const list = document.getElementById("cuc-list");
+  if (!cucRows.length) { list.innerHTML = ""; calcTotals(); return; }
+  list.innerHTML = cucRows.map((r, i) => `
+    <div class="spesa-row">
+      <span class="staff-num">${i + 1}</span>
+      <input class="inp-nome" type="text" placeholder="Nome…"
+        value="${escH(r.nome)}" oninput="upRow('cuc','${r.id}','nome',this.value)">
+      <div class="vdivider"></div>
+      <input class="inp-price" type="number" placeholder="0" value="${r.price}"
+        oninput="upRow('cuc','${r.id}','price',this.value)">
+      <span class="spesa-eur">€</span>
+    </div>`).join("");
+  calcTotals();
+}
+
+// ══════════════════════════════════════════
+// EXTRA
+// ══════════════════════════════════════════
+function addExt() {
+  extRows.push({ id: uid(), nome: "", price: "" });
+  renderExt();
+  setTimeout(() => {
+    const els = document.querySelectorAll("#ext-list .inp-nome");
+    if (els.length) els[els.length-1].focus();
+  }, 60);
+}
+
+function renderExt() {
+  const list = document.getElementById("ext-list");
+  if (!extRows.length) { list.innerHTML = ""; calcTotals(); return; }
+  list.innerHTML = extRows.map(r => `
+    <div class="spesa-row">
+      <button class="btn-del-row" onclick="delExt('${r.id}')">−</button>
+      <input class="inp-nome" type="text" placeholder="Es. Fiori, DJ, Fotografo…"
+        value="${escH(r.nome)}" oninput="upRow('ext','${r.id}','nome',this.value)">
+      <div class="vdivider"></div>
+      <input class="inp-price" type="number" placeholder="0" value="${r.price}"
+        oninput="upRow('ext','${r.id}','price',this.value)">
+      <span class="spesa-eur">€</span>
+    </div>`).join("");
+  calcTotals();
+}
+
+function delExt(id) { extRows = extRows.filter(r => r.id !== id); renderExt(); }
+
+// ══════════════════════════════════════════
+// GENERIC UPDATE
+// ══════════════════════════════════════════
+function upRow(type, id, field, val) {
+  const arr = type==="cam"?camRows:type==="cuc"?cucRows:extRows;
+  const r = arr.find(r => r.id === id);
+  if (r) { r[field] = val; calcTotals(); }
+}
+
+function escH(s) { return String(s||"").replace(/&/g,"&amp;").replace(/"/g,"&quot;").replace(/</g,"&lt;"); }
+
+// ══════════════════════════════════════════
+// TOTALS
+// ══════════════════════════════════════════
+function sumArr(arr) { return arr.reduce((s,r) => s + (parseFloat(r.price)||0), 0); }
+function fmt(n) { return "€ " + n.toLocaleString("it-IT", {minimumFractionDigits:2,maximumFractionDigits:2}); }
+
+function calcTotals() {
+  const grand = sumArr(camRows) + sumArr(cucRows) + sumArr(extRows);
+  document.getElementById("ev-grandtot").textContent = fmt(grand);
+}
+
+// ══════════════════════════════════════════
+// TOAST
+// ══════════════════════════════════════════
+function toast(msg, err=false) {
+  const t = document.getElementById("toast");
+  t.textContent = msg; t.className = "toast show" + (err ? " err" : "");
+  setTimeout(() => t.classList.remove("show"), 3000);
+}
+
+// ══════════════════════════════════════════
+// API
+// ══════════════════════════════════════════
+// Invio foto via POST (la base64 è troppo grande per GET/URL params)
+async function sendPhoto(payload) {
+  try {
+    const r = await fetch(SCRIPT_URL, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(payload)
+    });
+    return await r.json();
+  } catch(e) {
+    console.warn("sendPhoto error:", e);
+    return null;
+  }
+}
+
+async function send(payload) {
+  // Strategia: prova fetch no-cors (fire-and-forget) + jsonp come fallback
+  const params = new URLSearchParams({ data: JSON.stringify(payload) });
+  const url = SCRIPT_URL + "?" + params.toString();
+
+  // Tentativo 1: fetch no-cors (salva ma non legge risposta)
+  try {
+    await fetch(url, { method: "GET", mode: "no-cors" });
+    debugLog("fetch no-cors inviato");
+  } catch(e) {
+    debugLog("fetch fallita: " + e.message);
+  }
+
+  // Tentativo 2: jsonp parallelo come doppia sicurezza
+  return new Promise((resolve) => {
+    const cbName = "gs_cb_" + Date.now();
+    const script = document.createElement("script");
+    
+    window[cbName] = function(response) {
+      debugLog("JSONP risposta: " + JSON.stringify(response));
+      delete window[cbName];
+      try { document.head.removeChild(script); } catch(e){}
+      resolve(response);
+    };
+
+    script.src = url + "&callback=" + cbName;
+    script.onerror = function() {
+      debugLog("JSONP script error (normale con CORS)");
+      delete window[cbName];
+      try { document.head.removeChild(script); } catch(e){}
+      resolve({ result: "ok" });
+    };
+    document.head.appendChild(script);
+
+    // Timeout 6s
+    setTimeout(() => {
+      if (window[cbName]) {
+        debugLog("Timeout — assumo OK");
+        delete window[cbName];
+        try { document.head.removeChild(script); } catch(e){}
+        resolve({ result: "ok" });
+      }
+    }, 6000);
+  });
+}
+
+function debugLog(msg) {
+  console.log("[GS]", msg);
+  const el = document.getElementById("debug-log");
+  if (el) {
+    el.style.display = "block";
+    el.textContent = msg;
+    setTimeout(() => { el.style.display = "none"; }, 8000);
+  }
+}
+
+// ══════════════════════════════════════════
+// STORAGE HELPERS
+// ══════════════════════════════════════════
+function loadRecs(type) { return JSON.parse(localStorage.getItem("recs_"+type) || "[]"); }
+function saveRecs(type, arr) { localStorage.setItem("recs_"+type, JSON.stringify(arr)); }
+
+// ══════════════════════════════════════════
+// EDIT EXISTING EVENT
+// ══════════════════════════════════════════
+function startEdit(recId) {
+  const recs = loadRecs("ev");
+  const rec = recs.find(r => r.id === recId);
+  if (!rec) return;
+
+  editingId = recId;
+
+  // populate form
+  document.getElementById("ev-data").value             = rec.data || today;
+  document.getElementById("ev-luogo").value            = rec.luogo || "";
+  document.getElementById("ev-cliente").value          = rec.cliente || "";
+  document.getElementById("ev-telefono").value         = rec.telefono || "";
+  document.getElementById("ev-ricorrenza").value       = rec.ricorrenza || "";
+  personeVal = parseInt(rec.persone) || 0;
+  setStepDisplay("persone-count", personeVal);
+  const ppI = document.getElementById("ev-prezzo-persona");
+  if (ppI) ppI.value = rec.prezzoPersona || "";
+
+  document.getElementById("ev-note").value             = rec.note || "";
+
+  // staff
+  camRows = (rec.camerieri || []).map(r => ({...r, id: uid()}));
+  cucRows = (rec.cucina    || []).map(r => ({...r, id: uid()}));
+  extRows = (rec.extra     || []).map(r => ({...r, id: uid()}));
+  camCount = camRows.length; cucCount = cucRows.length;
+  document.getElementById("cam-count").textContent = camCount;
+  document.getElementById("cuc-count").textContent = cucCount;
+  renderCam(); renderCuc(); renderExt();
+
+  // show banner
+  document.getElementById("active-ev-banner").style.display = "block";
+  // lock testata by default, reset toggle
+  const tog = document.getElementById("toggle-testata");
+  if (tog) tog.checked = false;
+  toggleTestata(false);
+  document.getElementById("aeb-title").textContent = rec.luogo || "—";
+  document.getElementById("aeb-date").textContent  = formatDate(rec.data);
+  document.getElementById("ev-hdr-title").textContent = "Modifica Evento";
+  document.getElementById("btn-ev").textContent = "Aggiorna evento";
+  document.getElementById("btn-ev").style.background = "var(--orange)";
+
+  // scroll to top
+  document.getElementById("screen-ev").scrollTop = 0;
+}
+
+function cancelEdit() {
+  if (!editingId) return;
+  editingId = null;
+  resetEvForm();
+}
+
+function toggleTestata(enabled) {
+  const card = document.getElementById('dettagli-card');
+  if (!card) return;
+  if (enabled) {
+    card.classList.remove('card-locked');
+  } else {
+    card.classList.add('card-locked');
+  }
+}
+
+function resetEvForm() {
+  editingId = null;
+  document.getElementById("ev-data").value = today;
+  document.getElementById("ev-luogo").value = "";
+  document.getElementById("ev-cliente").value = "";
+  document.getElementById("ev-telefono").value = "";
+  document.getElementById("ev-ricorrenza").value = "";
+  personeVal = 0;
+  prezzoVal = 0;
+  const ppReset = document.getElementById("ev-prezzo-persona");
+  if (ppReset) ppReset.value = "";
+  setStepDisplay("persone-count", 0);
+  setStepDisplay("prezzo-count", 0);
+
+  document.getElementById("ev-note").value = "";
+  camRows=[]; cucRows=[]; extRows=[];
+  camCount=0; cucCount=0;
+  const cc = document.getElementById("cam-count");
+  const cuc = document.getElementById("cuc-count");
+  if (cc) cc.textContent = "0";
+  if (cuc) cuc.textContent = "0";
+  renderCam(); renderCuc(); renderExt();
+  document.getElementById("active-ev-banner").style.display = "none";
+  toggleTestata(true); // unlock dettagli card
+  document.getElementById("ev-hdr-title").textContent = "Nuovo Evento";
+  const btn = document.getElementById("btn-ev");
+  btn.textContent = "Salva su Google Fogli";
+  btn.style.background = "var(--blue)";
+}
+
+function formatDate(dateStr) {
+  if (!dateStr) return "";
+  const [y,m,d] = dateStr.split("-");
+  return `${d}/${m}/${y}`;
+}
+
+// ══════════════════════════════════════════
+// RENDER EVENTS (active + past)
+// ══════════════════════════════════════════
+function refreshEvScreen() {
+  renderEvRecs();
+  // URL configured — banner hidden
+}
+
+function refreshEvHome() {
+  const active = loadRecs("ev").filter(isActiveEvent);
+  const badge = document.getElementById("badge-active-ev");
+  const card  = document.getElementById("ev-modifica-card");
+  if (active.length) {
+    badge.style.display = "block";
+    badge.textContent = active.length + " attiv" + (active.length === 1 ? "o" : "i");
+    card.style.opacity = "1";
+    card.style.pointerEvents = "auto";
+  } else {
+    badge.style.display = "none";
+    card.style.opacity = "0.45";
+    card.style.pointerEvents = "none";
+  }
+}
+
+function renderPickList() {
+  const active = loadRecs("ev").filter(isActiveEvent);
+  const list = document.getElementById("list-pick-ev");
+  if (!active.length) {
+    list.innerHTML = '<div style="color:var(--muted);font-size:14px;text-align:center;padding:32px 0">Nessun evento attivo al momento</div>';
+    return;
+  }
+  list.innerHTML = active.map(r => {
+    return '<div class="rec" onclick="pickAndEdit(\'' + r.id + '\')" style="cursor:pointer;display:flex;align-items:center;justify-content:space-between;gap:12px">'
+      + '<div style="flex:1;min-width:0">'
+      + '<div class="rec-top" style="margin-bottom:4px">'
+      + '<span>' + (r.luogo||"—") + '</span>'
+      + '<span class="pill pill-ev">' + (r.ricorrenza||"—") + '</span>'
+      + '</div>'
+      + '<div class="rec-meta">'
+      + formatDate(r.data) + (r.cliente ? " · " + r.cliente : "")
+      + (r.persone ? " · " + r.persone + " pers." : "")
+      + '</div></div>'
+      + '<svg width="9" height="15" viewBox="0 0 9 15" fill="none" stroke="#C7C7CC" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="1,1 8,7.5 1,14"/></svg>'
+      + '</div>';
+  }).join("");
+}
+
+function renderEvRecs() {
+  const all  = loadRecs("ev");
+  const past = all.filter(r => !isActiveEvent(r));
+  const pastList = document.getElementById("list-ev");
+  if (!pastList) return;
+  if (!past.length) {
+    pastList.innerHTML = '<div style="font-size:13px;color:var(--muted);text-align:center;padding:16px 0">Nessun evento concluso</div>';
+  } else {
+    pastList.innerHTML = past.map(r => buildEvRec(r, false)).join("");
+  }
+}
+
+function buildEvRec(r, editable) {
+  const cam = r.camerieri?.length ? r.camerieri.map(c=>`${c.nome||"—"} €${parseFloat(c.price||0).toFixed(0)}`).join(", ") : "";
+  const cuc = r.cucina?.length    ? r.cucina.map(c=>`${c.nome||"—"} €${parseFloat(c.price||0).toFixed(0)}`).join(", ") : "";
+  const ext = r.extra?.length     ? r.extra.map(e=>`${e.nome||"—"} €${parseFloat(e.price||0).toFixed(0)}`).join(", ") : "";
+  const editBtn = editable
+    ? `<button onclick="startEdit('${r.id}')"
+        style="font-family:var(--font);font-size:12px;font-weight:600;padding:4px 11px;border-radius:7px;
+               border:none;background:rgba(255,149,0,.12);color:var(--orange);cursor:pointer;flex-shrink:0;">
+        Modifica
+      </button>` : "";
+  return `<div class="rec" id="rec-${r.id}">
+    <div class="rec-top">
+      <span>${r.luogo||"—"}</span>
+      <div style="display:flex;align-items:center;gap:6px;">
+        ${editBtn}
+        <span class="pill pill-ev">${r.ricorrenza||"—"}</span>
+      </div>
+    </div>
+    <div class="rec-meta">
+      ${formatDate(r.data)} · ${r.persone||"—"} pers. × €${r.prezzoPersona||0}<br>
+      ${cam?"🧑‍🍽️ "+cam+"<br>":""}${cuc?"👨‍🍳 "+cuc+"<br>":""}${ext?"➕ "+ext+"<br>":""}
+      <span class="pill pill-tot">${r.totale||"€ 0,00"}</span>
+    </div>
+  </div>`;
+}
+
+function renderNolRecs() {
+  const arr = loadRecs("nol");
+  const list = document.getElementById("list-nol");
+  if (!arr.length) {
+    list.innerHTML = '<div style="font-size:13px;color:var(--muted);text-align:center;padding:16px 0">Nessun noleggio salvato</div>';
+    return;
+  }
+  list.innerHTML = arr.map(r => {
+    const art = r.articoli && r.articoli.length
+      ? r.articoli.map(a => (a.categoria?a.categoria+': ':'') + a.articolo + ' ×'+a.qta+' – €'+parseFloat(a.totaleRiga||0).toFixed(2)).join(', ')
+      : r.articolo || "—";
+    return '<div class="rec">'
+      +'<div class="rec-top"><span>'+(r.cliente||"—")+'</span><span class="pill pill-nol">'+(r.stato||"")+'</span></div>'
+      +'<div class="rec-meta">'
+      +formatDate(r.inizio)+' → '+formatDate(r.fine)+'<br>'
+      +art+'<br>'
+      +'Totale: €'+parseFloat(r.totale||r.costo||0).toFixed(2)
+      +(r.note?'<br>'+r.note:'')
+      +'</div></div>';
+  }).join("");
+}
+
+function updateBadges() {
+  ["ev","nol"].forEach(t => {
+    const arr = loadRecs(t);
+    const el = document.getElementById("badge-"+t);
+    if (el) el.textContent = arr.length + " salvat" + (arr.length===1?"o":"i");
+  });
+}
+
+// ══════════════════════════════════════════
+// SUBMIT EVENTO
+// ══════════════════════════════════════════
+async function submitEvento() {
+  const data          = document.getElementById("ev-data").value;
+  const luogo         = document.getElementById("ev-luogo").value.trim();
+  const cliente       = document.getElementById("ev-cliente").value.trim();
+  const telefono      = document.getElementById("ev-telefono").value.trim();
+  const ricorrenza    = document.getElementById("ev-ricorrenza").value.trim();
+  const persone       = String(personeVal);
+  const prezzoPersona = document.getElementById("ev-prezzo-persona").value;
+  const note          = document.getElementById("ev-note").value.trim();
+
+  if (!data||!luogo) { toast("⚠️ Inserisci Data e Luogo", true); return; }
+
+  const totale = fmt(sumArr(camRows) + sumArr(cucRows) + sumArr(extRows));
+  const rec = {
+    id: editingId || uid(),
+    data, luogo, cliente, telefono, ricorrenza, persone, prezzoPersona,
+    camerieri: camRows.map(r=>({nome:r.nome,price:r.price})),
+    cucina:    cucRows.map(r=>({nome:r.nome,price:r.price})),
+    extra:     extRows.map(r=>({nome:r.nome,price:r.price})),
+    totale, note,
+    savedAt: new Date().toISOString()
+  };
+
+  const btn = document.getElementById("btn-ev");
+  const origLabel = btn.textContent;
+  btn.innerHTML = `<span class="spin"></span>`; btn.disabled = true;
+
+  try {
+    await send({type:"evento", ...rec});
+
+    // update or insert in local storage
+    const all = loadRecs("ev");
+    if (editingId) {
+      const idx = all.findIndex(r => r.id === editingId);
+      if (idx >= 0) all[idx] = rec; else all.unshift(rec);
+    } else {
+      all.unshift(rec);
+      if (all.length > 50) all.pop();
+    }
+    saveRecs("ev", all);
+
+    toast(editingId ? "✅ Evento aggiornato!" : "✅ Evento salvato!");
+    resetEvForm();
+    renderEvRecs();
+    renderPickList();
+    refreshEvHome();
+    updateBadges();
+  } catch(e) { console.warn('Send error:', e); toast("⚠️ Verifica connessione", true); }
+
+  btn.innerHTML = origLabel; btn.disabled = false;
+  btn.textContent = "Salva su Google Fogli";
+  btn.style.background = "var(--blue)";
+}
+
+// ══════════════════════════════════════════
+// NOLEGGIO MODALITÀ
+// ══════════════════════════════════════════
+function setModalita(val) {
+  document.getElementById("nol-rad-" + val).checked = true;
+  ["ritiro","consegna"].forEach(v => {
+    document.getElementById("lbl-" + v).classList.toggle("active-nol-radio", v === val);
+  });
+  const kmSection = document.getElementById("nol-km-section");
+  if (kmSection) kmSection.style.display = val === "consegna" ? "block" : "none";
+  const luogoRitiro   = document.getElementById("nol-luogo-ritiro");
+  const luogoConsegna = document.getElementById("nol-luogo-consegna");
+  if (luogoRitiro)   luogoRitiro.style.display   = val === "ritiro"   ? "block" : "none";
+  if (luogoConsegna) luogoConsegna.style.display  = val === "consegna" ? "block" : "none";
+  if (val === "ritiro") {
+    const km = document.getElementById("nol-km");
+    const ckm = document.getElementById("nol-costo-km");
+    if (km) km.value = "";
+    if (ckm) ckm.value = "";
+    calcTrasporto();
+  }
+}
+
+function calcTrasporto() {
+  const km  = parseFloat(document.getElementById("nol-km")?.value) || 0;
+  const ckm = parseFloat(document.getElementById("nol-costo-km")?.value) || 0;
+  const tot = km * ckm;
+  const el  = document.getElementById("nol-trasporto-display");
+  if (el) el.textContent = "€ " + tot.toLocaleString("it-IT",{minimumFractionDigits:2,maximumFractionDigits:2});
+}
+
+// ══════════════════════════════════════════
+// NOLEGGIO ITEMS
+// ══════════════════════════════════════════
+let nolItems = [];
+
+function addNolItem() {
+  nolItems.push({ id: uid(), categoria: "", articolo: "", prezzo: 0, qta: 1, ricerca: "", articoloManuale: false });
+  renderNolItems();
+  setTimeout(() => {
+    const sels = document.querySelectorAll(".nol-cat-sel");
+    if (sels.length) sels[sels.length-1].focus();
+  }, 60);
+}
+function delNolItem(id) {
+  nolItems = nolItems.filter(r => r.id !== id);
+  renderNolItems();
+}
+function renderNolItems() {
+  const list = document.getElementById("nol-items-list");
+  if (!list) return;
+  if (!nolItems.length) { list.innerHTML = ""; calcNolTotale(); return; }
+  list.innerHTML = nolItems.map(r => {
+    const cats = Object.keys(CATALOG);
+    const catOpts = cats.map(c =>
+      '<option value="'+escH(c)+'"'+(r.categoria===c?' selected':'')+'>'+escH(c)+'</option>'
+    ).join("");
+
+    const artList = r.categoria && CATALOG[r.categoria] ? CATALOG[r.categoria] : [];
+    const artOpts = artList.length
+      ? artList.map(a => '<option value="'+escH(a.nome)+'"'+(r.articolo===a.nome?' selected':'')+'>'+escH(a.nome)+'</option>').join("")
+      : '<option value="">— seleziona prima la categoria —</option>';
+
+    const rigaTot = (r.prezzo * r.qta).toFixed(2);
+
+    return '<div style="font-family:var(--font);border-bottom:0.5px solid var(--border-light)">'
+
+      // ── Riga CATEGORIA (blu, overlay select) ──
+      +'<div style="display:flex;align-items:stretch;background:var(--blue)">'
+        // Pulsante elimina
+        +'<button onclick="delNolItem(\''+r.id+'\')" '
+        +'style="width:52px;border:none;background:rgba(0,0,0,0.18);color:#fff;font-size:20px;'
+        +'cursor:pointer;flex-shrink:0;font-family:var(--font);display:flex;align-items:center;justify-content:center">−</button>'
+        // Label + select invisibile
+        +'<div style="flex:1;position:relative;display:flex;align-items:center;min-height:52px">'
+          +'<span style="flex:1;padding:0 10px;font-family:var(--font);font-size:16px;font-weight:600;'
+          +'color:#fff;pointer-events:none;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">'
+          +(r.categoria||'Seleziona categoria…')+'</span>'
+          +'<span style="color:rgba(255,255,255,0.7);padding-right:14px;font-size:16px;pointer-events:none">▾</span>'
+          +'<select class="nol-cat-sel" onchange="nolSetCat(\''+r.id+'\',this.value)" '
+          +'style="position:absolute;inset:0;opacity:0;width:100%;height:100%;cursor:pointer">'
+          +'<option value="">Seleziona categoria…</option>'+catOpts
+          +'</select>'
+        +'</div>'
+      +'</div>'
+
+      // ── Riga ARTICOLO (solo se categoria selezionata) ──
+      +(r.categoria
+        ? '<div style="display:flex;align-items:stretch;border-bottom:0.5px solid var(--border-light);background:#fff">'
+            // Indicatore step
+            +'<div style="width:52px;display:flex;align-items:center;justify-content:center;'
+            +'font-size:11px;font-weight:700;color:var(--muted);flex-shrink:0;border-right:0.5px solid var(--border-light)">ART</div>'
+            +(r.articoloManuale
+              // Input manuale
+              ? '<input type="text" value="'+escH(r.articolo||'')+'" placeholder="Nome articolo…" '
+                +'data-nolid="'+r.id+'" '
+                +'style="flex:1;padding:14px 10px;border:none;outline:none;background:transparent;'
+                +'font-family:var(--font);font-size:15px;color:var(--text);min-width:0" '
+                +'oninput="nolSetArticoloManuale(this.dataset.nolid,this.value)">'
+                +'<button onclick="nolToggleManuale(\''+r.id+'\',false)" '
+                +'style="padding:0 14px;border:none;background:transparent;font-family:var(--font);'
+                +'font-size:13px;color:var(--blue);cursor:pointer;flex-shrink:0;white-space:nowrap;min-height:52px">lista ▾</button>'
+              // Select catalogo (con overlay per tap target grande)
+              : '<div style="flex:1;position:relative;display:flex;align-items:center;min-height:52px">'
+                  +'<span style="flex:1;padding:0 10px;font-family:var(--font);font-size:15px;color:'
+                  +(r.articolo?'var(--text)':'var(--muted)')+';pointer-events:none;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">'
+                  +(r.articolo||'Seleziona articolo…')+'</span>'
+                  +'<span style="color:var(--muted);padding-right:10px;font-size:14px;pointer-events:none">▾</span>'
+                  +'<select id="nol-art-sel-'+r.id+'" data-nolid="'+r.id+'" onchange="nolSetArticolo(this.dataset.nolid,this.value)" '
+                  +'style="position:absolute;inset:0;opacity:0;width:100%;height:100%;cursor:pointer">'
+                  +'<option value="">Seleziona articolo…</option>'+artOpts
+                  +'</select>'
+                +'</div>'
+                +'<button onclick="nolToggleManuale(\''+r.id+'\',true)" '
+                +'style="padding:0 14px;border:none;border-left:0.5px solid var(--border-light);background:transparent;'
+                +'font-family:var(--font);font-size:15px;font-weight:600;color:var(--blue);cursor:pointer;'
+                +'flex-shrink:0;white-space:nowrap;min-height:52px">+ nuovo</button>'
+            )
+          +'</div>'
+        : '')
+
+      // ── Riga FOTO (solo se articolo selezionato) ──
+      +(r.articolo
+        ? (function() {
+            const photoKey = 'photo_' + encodeURIComponent((r.categoria||'') + '_' + (r.articolo||''));
+            const hasPhoto = !!localStorage.getItem(photoKey);
+            return '<div style="display:flex;align-items:stretch;border-bottom:0.5px solid var(--border-light);background:#fafafa">'
+              +'<div style="width:52px;display:flex;align-items:center;justify-content:center;'
+              +'font-size:11px;font-weight:700;color:var(--muted);flex-shrink:0;border-right:0.5px solid var(--border-light)">FOTO</div>'
+              +(hasPhoto
+                ? '<div style="flex:1;display:flex;align-items:center;gap:10px;padding:8px 12px">'
+                  +'<img src="'+localStorage.getItem(photoKey)+'" style="width:48px;height:48px;object-fit:cover;border-radius:8px;flex-shrink:0;cursor:pointer" onclick="nolViewPhoto(\''+r.id+'\')">'
+                  +'<span style="flex:1;font-family:var(--font);font-size:13px;color:var(--muted);cursor:pointer" onclick="nolViewPhoto(\''+r.id+'\')">Tocca per ingrandire</span>'
+                  +'<button onclick="nolSharePhotoById(\''+r.id+'\')" style="padding:6px 12px;border-radius:8px;border:none;background:rgba(52,199,89,0.1);color:var(--green);font-family:var(--font);font-size:13px;font-weight:600;cursor:pointer;flex-shrink:0">↗ Invia</button>'
+                  +'<label style="padding:6px 12px;border-radius:8px;background:rgba(0,122,255,0.08);color:var(--blue);font-family:var(--font);font-size:13px;font-weight:600;cursor:pointer;flex-shrink:0">'
+                    +'Cambia'
+                    +'<input type="file" accept="image/*" style="display:none" data-nolid="'+r.id+'" onchange="nolUploadPhoto(this)">'
+                  +'</label>'
+                +'</div>'
+                : '<div style="flex:1;display:flex;align-items:center;gap:10px;padding:8px 12px">'
+                  +'<span style="flex:1;font-family:var(--font);font-size:13px;color:var(--muted)">Nessuna foto</span>'
+                  +'<label style="padding:6px 14px;border-radius:8px;background:rgba(0,122,255,0.08);color:var(--blue);font-family:var(--font);font-size:13px;font-weight:600;cursor:pointer;flex-shrink:0;white-space:nowrap">'
+                    +'📷 Aggiungi'
+                    +'<input type="file" accept="image/*" capture="environment" style="display:none" data-nolid="'+r.id+'" onchange="nolUploadPhoto(this)">'
+                  +'</label>'
+                +'</div>'
+              )
+              +'</div>';
+          })()
+        : '')
+
+      // ── Riga PREZZO × QTÀ = TOTALE ──
+      +'<div style="display:flex;align-items:center;gap:8px;padding:12px 14px 12px 16px;background:#fff">'
+        +'<span style="font-size:14px;color:var(--muted)">€</span>'
+        +'<input type="number" value="'+r.prezzo+'" min="0" step="0.01" '
+        +'style="width:72px;border:none;outline:none;background:transparent;font-family:var(--font);'
+        +'font-size:15px;color:var(--text);-moz-appearance:textfield" '
+        +'oninput="nolSetPrezzo(\''+r.id+'\',this.value)">'
+        +'<span style="font-size:14px;color:var(--muted)">×</span>'
+        +'<div class="stepper">'
+          +'<button class="step-btn" onclick="nolStepQta(\''+r.id+'\',-1)">−</button>'
+          +'<span id="nol-qta-'+r.id+'" class="step-val" onclick="nolEditQta(\''+r.id+'\')">'+r.qta+'</span>'
+          +'<button class="step-btn" onclick="nolStepQta(\''+r.id+'\',1)">+</button>'
+        +'</div>'
+        +'<span style="flex:1"></span>'
+        +'<span style="font-size:16px;font-weight:700;font-family:var(--font)">€ '+rigaTot+'</span>'
+      +'</div>'
+
+    +'</div>';
+  }).join("");
+  calcNolTotale();
+}
+function nolSetCat(id, val) {
+  const r = nolItems.find(r => r.id===id);
+  if (!r) return;
+  r.categoria=val; r.articolo=""; r.prezzo=0; r.ricerca=""; r.articoloManuale=false;
+  renderNolItems();
+}
+function nolToggleManuale(id, manual) {
+  const r = nolItems.find(r => r.id===id);
+  if (!r) return;
+  r.articoloManuale = manual;
+  r.articolo = ""; r.prezzo = 0;
+  renderNolItems();
+  if (manual) {
+    setTimeout(() => {
+      const inputs = document.querySelectorAll('[oninput*="nolSetArticoloManuale"]');
+      if (inputs.length) inputs[inputs.length-1].focus();
+    }, 60);
+  }
+}
+function nolSetArticoloManuale(id, val) {
+  const r = nolItems.find(r => r.id===id);
+  if (r) { r.articolo = val; calcNolTotale(); }
+}
+function nolSetRicerca(id, val) {
+  const r = nolItems.find(r => r.id===id);
+  if (!r || !r.categoria) return;
+  r.ricerca = val;
+  const sel = document.getElementById("nol-art-sel-" + id);
+  if (!sel) return;
+  let list = CATALOG[r.categoria] || [];
+  if (val && val.trim()) {
+    const q = val.toLowerCase();
+    list = list.filter(a => a.nome.toLowerCase().includes(q));
+  }
+  const opts = list.length
+    ? list.map(a => '<option value="'+escH(a.nome)+'"'+(r.articolo===a.nome?' selected':'')+'>'+escH(a.nome)+'</option>').join("")
+    : '<option value="">Nessun risultato</option>';
+  sel.innerHTML = '<option value="">Articolo...</option>' + opts;
+}
+function nolSetArticolo(id, val) {
+  const r = nolItems.find(r => r.id===id);
+  if (!r) return;
+  r.articolo=val;
+  if (r.categoria && CATALOG[r.categoria]) {
+    const found = CATALOG[r.categoria].find(a => a.nome===val);
+    if (found) r.prezzo = found.prezzo;
+  }
+  renderNolItems(); // re-render per mostrare riga foto
+}
+
+// ── FOTO ARTICOLI ──────────────────────────────────────────────
+function nolPhotoKey(r) {
+  return 'photo_' + encodeURIComponent((r.categoria||'') + '_' + (r.articolo||''));
+}
+
+function nolUploadPhoto(input) {
+  const id = input.dataset.nolid;
+  const r = nolItems.find(r => r.id===id);
+  if (!r || !input.files[0]) return;
+  const file = input.files[0];
+  const reader = new FileReader();
+  reader.onload = function(e) {
+    const img = new Image();
+    img.onload = function() {
+      // Comprimi
+      const canvas = document.createElement('canvas');
+      const MAX = 800;
+      const ratio = Math.min(MAX/img.width, MAX/img.height, 1);
+      canvas.width  = img.width  * ratio;
+      canvas.height = img.height * ratio;
+      canvas.getContext('2d').drawImage(img, 0, 0, canvas.width, canvas.height);
+      const base64 = canvas.toDataURL('image/jpeg', 0.75);
+      const key = nolPhotoKey(r);
+
+      // Salva subito in localStorage come preview immediata
+      localStorage.setItem(key, base64);
+      renderNolItems();
+      toast('📷 Caricamento su Drive…');
+
+      // Carica su Google Drive in background via POST
+      sendPhoto({
+        type: "foto",
+        key: key,
+        nome: r.articolo || "",
+        base64: base64
+      }).then(res => {
+        if (res && res.url) {
+          localStorage.setItem(key, res.url);
+          window._fotoCache = window._fotoCache || {};
+          window._fotoCache[key] = res.url;
+          renderNolItems();
+          toast('📷 Foto salvata su Drive!');
+        } else {
+          toast('📷 Salvata in locale');
+        }
+      }).catch(() => {
+        toast('📷 Salvata in locale (Drive non raggiungibile)');
+      });
+    };
+    img.src = e.target.result;
+  };
+  reader.readAsDataURL(file);
+}
+
+function nolViewPhoto(id) {
+  const r = nolItems.find(r => r.id===id);
+  if (!r) return;
+  const src = localStorage.getItem(nolPhotoKey(r));
+  if (!src) return;
+  const lb  = document.getElementById('photo-lightbox');
+  const img = document.getElementById('photo-lightbox-img');
+  const cap = document.getElementById('photo-lightbox-cap');
+  const btn = document.getElementById('photo-share-btn');
+  img.src = src;
+  cap.textContent = r.articolo || '';
+  // Mostra/nascondi pulsante share in base al supporto
+  btn.style.display = navigator.share ? 'flex' : 'none';
+  btn.onclick = () => nolSharePhoto(src, r.articolo || 'Articolo');
+  lb.style.display = 'flex';
+}
+
+async function nolSharePhoto(src, nome) {
+  try {
+    // Converti base64 in Blob
+    const res  = await fetch(src);
+    const blob = await res.blob();
+    const file = new File([blob], nome.replace(/\s+/g,'_') + '.jpg', { type: 'image/jpeg' });
+    if (navigator.canShare && navigator.canShare({ files: [file] })) {
+      await navigator.share({ files: [file], title: nome });
+    } else {
+      // Fallback: share solo URL testo
+      await navigator.share({ title: nome, text: 'Articolo: ' + nome });
+    }
+  } catch(e) {
+    if (e.name !== 'AbortError') toast('⚠️ Condivisione non supportata', true);
+  }
+}
+
+function nolSharePhotoById(id) {
+  const r = nolItems.find(r => r.id===id);
+  if (!r) return;
+  const src = localStorage.getItem(nolPhotoKey(r));
+  if (!src) return;
+  nolSharePhoto(src, r.articolo || 'Articolo');
+}
+
+function closeLightbox() {
+  document.getElementById('photo-lightbox').style.display = 'none';
+}
+function nolSetPrezzo(id, val) {
+  const r = nolItems.find(r => r.id===id);
+  if (r) { r.prezzo=parseFloat(val)||0; calcNolTotale(); }
+}
+function nolStepQta(id, delta) {
+  const r = nolItems.find(r => r.id===id);
+  if (!r) return;
+  r.qta = Math.max(1, r.qta + delta);
+  const el = document.getElementById("nol-qta-"+id);
+  if (el && el.tagName === "SPAN") el.textContent = r.qta;
+  calcNolTotale();
+  // aggiorna totale riga visibile
+  renderNolItems();
+}
+function nolEditQta(id) {
+  const r = nolItems.find(r => r.id===id);
+  if (!r) return;
+  const span = document.getElementById("nol-qta-"+id);
+  if (!span) return;
+  span.outerHTML = '<input id="nol-qta-inp-'+id+'" type="number" value="'+r.qta+'" min="1" '
+    +'style="width:40px;text-align:center;font-family:var(--font);font-size:16px;font-weight:600;border:none;outline:none;background:transparent;-moz-appearance:textfield" '
+    +'onblur="nolCommitQta(\''+id+'\',this.value)" onkeydown="if(event.key===\'Enter\')this.blur()">';
+  const inp = document.getElementById("nol-qta-inp-"+id);
+  if (inp) { inp.focus(); inp.select(); }
+}
+function nolCommitQta(id, val) {
+  const r = nolItems.find(r => r.id===id);
+  const n = Math.max(1, parseInt(val)||1);
+  if (r) r.qta = n;
+  const inp = document.getElementById("nol-qta-inp-"+id);
+  if (inp) inp.outerHTML = '<span id="nol-qta-'+id+'" class="step-val" onclick="nolEditQta(\''+id+'\')">' + n + '</span>';
+  renderNolItems();
+}
+function calcNolTotale() {
+  const tot = nolItems.reduce((s,r) => s+r.prezzo*r.qta, 0);
+  const el = document.getElementById("nol-totale");
+  if (el) el.textContent = "€ "+tot.toLocaleString("it-IT",{minimumFractionDigits:2,maximumFractionDigits:2});
+}
+function resetNolForm() {
+  nolItems=[];
+  renderNolItems();
+  ["nol-cliente","nol-telefono","nol-note","nol-luogo","nol-comune","nol-via","nol-civico","nol-km","nol-costo-km"].forEach(id => {
+    const el = document.getElementById(id); if(el) el.value="";
+  });
+  document.getElementById("nol-stato").value="Confermato";
+  const t=todayStr();
+  document.getElementById("nol-data").value=t;
+  document.getElementById("nol-ora").value="";
+  setModalita("ritiro");
+}
+
+// ══════════════════════════════════════════
+// SUBMIT NOLEGGIO
+// ══════════════════════════════════════════
+async function submitNoleggio() {
+  const data     = document.getElementById("nol-data").value;
+  const cliente  = document.getElementById("nol-cliente").value.trim();
+  const telefono = document.getElementById("nol-telefono").value.trim();
+  const modalita = document.querySelector('input[name="nol-modalita"]:checked')?.value || "ritiro";
+  const ora      = document.getElementById("nol-ora").value;
+  const luogo    = modalita === "consegna"
+    ? [document.getElementById("nol-via").value.trim(),
+       document.getElementById("nol-civico").value.trim(),
+       document.getElementById("nol-comune").value.trim()]
+       .filter(Boolean).join(", ")
+    : document.getElementById("nol-luogo").value.trim();
+  const comune   = modalita === "consegna" ? document.getElementById("nol-comune").value.trim() : "";
+  const stato    = document.getElementById("nol-stato").value;
+  const note     = document.getElementById("nol-note").value.trim();
+  const km         = parseFloat(document.getElementById("nol-km")?.value) || 0;
+  const costoKm    = parseFloat(document.getElementById("nol-costo-km")?.value) || 0;
+  const trasporto  = modalita === "consegna" ? km * costoKm : 0;
+  const totale     = nolItems.reduce((s,r) => s+r.prezzo*r.qta, 0) + trasporto;
+
+  if (!cliente) { toast("⚠️ Inserisci il Cliente", true); return; }
+  if (!nolItems.length) { toast("⚠️ Aggiungi almeno un articolo", true); return; }
+
+  const rec = {
+    id: uid(), type: "noleggio",
+    data, inizio: data, fine: data,
+    cliente: cliente+(telefono?" – "+telefono:""),
+    modalita, ora, luogo,
+    km, costoKm, trasporto,
+    articoli: nolItems.map(r=>({categoria:r.categoria,articolo:r.articolo,prezzo:r.prezzo,qta:r.qta,totaleRiga:parseFloat((r.prezzo*r.qta).toFixed(2))})),
+    totale: totale.toFixed(2), stato, note
+  };
+
+  const btn=document.getElementById("btn-nol");
+  btn.innerHTML=`<span class="spin"></span>`; btn.disabled=true;
+
+  try {
+    await send(rec);
+    const all=loadRecs("nol");
+    all.unshift({...rec, cliente, telefono});
+    if(all.length>50) all.pop();
+    saveRecs("nol",all);
+    toast("✅ Noleggio salvato!");
+    generaPDF({...rec, cliente, telefono});
+    resetNolForm();
+    renderNolRecs();
+    updateBadges();
+  } catch(e){ console.warn('Send error:',e); toast("⚠️ Verifica connessione",true); }
+  btn.innerHTML="Salva su Google Fogli"; btn.disabled=false;
+}
+
+// ══════════════════════════════════════════
+// SYNC DA GOOGLE SHEETS
+// ══════════════════════════════════════════
+async function fetchFromSheets(action) {
+  const url = SCRIPT_URL + "?action=" + action;
+  // XHR segue i redirect di Google meglio di fetch
+  return new Promise((resolve) => {
+    const xhr = new XMLHttpRequest();
+    xhr.open("GET", url, true);
+    xhr.timeout = 15000;
+    xhr.onload = function() {
+      try {
+        const json = JSON.parse(xhr.responseText);
+        console.log("[sync]", action, "ok:", json.data ? json.data.length + " records" : json.result);
+        resolve(json);
+      } catch(e) {
+        console.warn("[sync]", action, "parse error");
+        resolve(null);
+      }
+    };
+    xhr.onerror   = function() { console.warn("[sync]", action, "error");   resolve(null); };
+    xhr.ontimeout = function() { console.warn("[sync]", action, "timeout"); resolve(null); };
+    xhr.send();
+  });
+}
+
+
+async function syncFromSheets() {
+  showSyncBanner(true);
+  let evOk = false, nolOk = false;
+  try {
+    const evRes = await fetchFromSheets("getEventi");
+    if (evRes && evRes.result === "ok" && Array.isArray(evRes.data)) {
+      // Normalizza ogni record: assicura id e data in formato YYYY-MM-DD
+      const normalized = evRes.data.map(r => {
+        if (!r.id) r.id = uid();
+        if (r.data) {
+          const s = String(r.data).trim();
+          let iso = "";
+          if (/^\d{4}-\d{2}-\d{2}/.test(s)) {
+            iso = s.slice(0,10);
+          } else if (/^\d{1,2}\/\d{1,2}\/\d{4}/.test(s)) {
+            const p = s.split("/");
+            iso = p[2] + "-" + p[1].padStart(2,"0") + "-" + p[0].padStart(2,"0");
+          } else {
+            const d = new Date(isNaN(s) ? s : +s);
+            if (!isNaN(d.getTime())) iso = d.toISOString().slice(0,10);
+          }
+          if (iso) r.data = iso;
+        }
+        return r;
+      });
+      console.log("[sync] eventi normalizzati:", normalized.map(r => r.id + " " + r.data));
+      saveRecs("ev", normalized);
+      evOk = true;
+    }
+    const nolRes = await fetchFromSheets("getNoleggi");
+    if (nolRes && nolRes.result === "ok" && Array.isArray(nolRes.data)) {
+      saveRecs("nol", nolRes.data);
+      nolOk = true;
+    }
+    // Sync foto da Drive
+    const fotoRes = await fetchFromSheets("getFoto");
+    if (fotoRes && fotoRes.result === "ok" && fotoRes.data) {
+      window._fotoCache = fotoRes.data;
+      // Aggiorna localStorage con URL Drive
+      Object.entries(fotoRes.data).forEach(([key, url]) => {
+        if (url) localStorage.setItem(key, url);
+      });
+    }
+  } catch(e) {
+    console.warn("Sync failed:", e);
+  }
+  showSyncBanner(false);
+  renderEvRecs();
+  renderNolRecs();
+  refreshEvHome();
+  updateBadges();
+  if (evOk || nolOk) {
+    toast("✅ Sincronizzato: " + loadRecs("ev").length + " eventi, " + loadRecs("nol").length + " noleggi");
+  } else {
+    toast("⚠️ Sync fallita — controlla connessione", true);
+  }
+}
+
+function showSyncBanner(loading) {
+  const el = document.getElementById("sync-banner");
+  if (el) el.style.display = loading ? "flex" : "none";
+}
+
+// ══════════════════════════════════════════
+// GENERA PDF NOLEGGIO
+// ══════════════════════════════════════════
+function generaPDF(rec) {
+  // Cliente
+  document.getElementById("pdf-cliente").textContent = rec.cliente || "—";
+  document.getElementById("pdf-telefono").textContent = rec.telefono || "";
+  // Data
+  const dataFmt = rec.data ? rec.data.split("-").reverse().join("/") : "—";
+  document.getElementById("pdf-data").textContent = dataFmt;
+  // Numero preventivo (data + id troncato)
+  document.getElementById("pdf-numero").textContent = "N° " + (rec.id||"").slice(-6).toUpperCase() + " · " + dataFmt;
+  // Modalità
+  const mod = rec.modalita === "consegna" ? "🚚 Consegna" : "📦 Ritiro";
+  document.getElementById("pdf-modalita").textContent = mod;
+  const ol = (rec.ora ? rec.ora : "") + (rec.luogo ? (rec.ora ? " · " : "") + rec.luogo : "");
+  document.getElementById("pdf-oraluogo").textContent = ol;
+  // Articoli
+  const tbody = document.getElementById("pdf-righe");
+  const righeArt = (rec.articoli||[]).map(a => {
+    const photoKey = 'photo_' + encodeURIComponent((a.categoria||'') + '_' + (a.articolo||''));
+    const photo = localStorage.getItem(photoKey);
+    const photoCell = photo
+      ? '<img src="'+photo+'" style="width:48px;height:48px;object-fit:cover;border-radius:6px;display:block;margin-bottom:4px">'
+      : '';
+    return '<tr style="border-bottom:1px solid #f0f0f0">'
+      +'<td style="padding:8px 8px 8px 0;line-height:1.3;vertical-align:middle">'
+      + photoCell
+      +'<span style="font-weight:500">'+(a.articolo||'—')+'</span>'
+      +(a.categoria?'<br><span style="font-size:12px;color:#888">'+a.categoria+'</span>':'')
+      +'</td>'
+      +'<td style="text-align:right;padding:8px 0;white-space:nowrap;vertical-align:middle">€ '+parseFloat(a.prezzo||0).toFixed(2)+'</td>'
+      +'<td style="text-align:right;padding:8px 0;vertical-align:middle">'+(a.qta||1)+'</td>'
+      +'<td style="text-align:right;padding:8px 0 8px 8px;font-weight:500;vertical-align:middle">€ '+parseFloat(a.totaleRiga||0).toFixed(2)+'</td>'
+      +'</tr>';
+  }).join("");
+  // Spese trasporto (solo se consegna e > 0) — cliente vede solo "Spese trasporto", non km×€
+  const trasportoRiga = (rec.modalita === "consegna" && rec.trasporto > 0)
+    ? `<tr style="border-bottom:1px solid #f0f0f0">
+        <td style="padding:8px 8px 8px 0;font-weight:500">Spese trasporto</td>
+        <td style="text-align:right;padding:8px 0;white-space:nowrap">—</td>
+        <td style="text-align:right;padding:8px 0">1</td>
+        <td style="text-align:right;padding:8px 0 8px 8px;font-weight:500">€ ${parseFloat(rec.trasporto||0).toFixed(2)}</td>
+      </tr>` : "";
+  tbody.innerHTML = righeArt + trasportoRiga;
+  // Totale
+  document.getElementById("pdf-totale").textContent = "€ " + parseFloat(rec.totale||0).toLocaleString("it-IT",{minimumFractionDigits:2,maximumFractionDigits:2});
+  // Note
+  const noteWrap = document.getElementById("pdf-note-wrap");
+  if (rec.note) {
+    noteWrap.style.display = "block";
+    document.getElementById("pdf-note").textContent = rec.note;
+  } else {
+    noteWrap.style.display = "none";
+  }
+  // Data odierna
+  document.getElementById("pdf-oggi").textContent = new Date().toLocaleDateString("it-IT");
+  // Mostra preview
+  document.getElementById("pdf-preview").style.display = "block";
+  document.getElementById("pdf-preview").scrollTop = 0;
+}
+
+function triggerPrint() {
+  document.documentElement.classList.add("printing");
+  window.print();
+  // Rimuovi classe dopo la stampa
+  setTimeout(() => {
+    document.documentElement.classList.remove("printing");
+  }, 1000);
+}
+
+function closePdfPreview() {
+  document.getElementById("pdf-preview").style.display = "none";
+  document.documentElement.classList.remove("printing");
+}
+
+// ══════════════════════════════════════════
+// INIT
+// ══════════════════════════════════════════
+
+// Migrazione: assegna id agli eventi che ne sono privi
+(function migrateIds() {
+  const recs = loadRecs("ev");
+  let changed = false;
+  recs.forEach(r => { if (!r.id) { r.id = uid(); changed = true; } });
+  if (changed) saveRecs("ev", recs);
+})();
+
+calcTotals();
+renderEvRecs();
+renderNolRecs();
+updateBadges();
+refreshEvHome();
+// Carica dati aggiornati da Sheets in background
+syncFromSheets();
+
+// ══════════════════════════════════════════
+// CATALOGO ATTREZZATURE
+// ══════════════════════════════════════════
+const CATALOG = {"Tavoli": [{"nome": "Tavolo rotondo Ø 1,22 m    (per 6 pax)", "prezzo": 10.0}, {"nome": "Tavolo rotondo Ø 1,52 m   (per 8 pax)", "prezzo": 12.0}, {"nome": "Tavolo buffet 91x198 cm", "prezzo": 15.0}, {"nome": "Tavolo buffet 91x91 cm", "prezzo": 6.0}, {"nome": "Tavolo buffet mezzaluna 182", "prezzo": 15.0}, {"nome": "Tavolo buffet angolare", "prezzo": 6.0}, {"nome": "Tavolo alto x buffet h 1,50 m Ø 0,80 c/tovaglia", "prezzo": 18.0}, {"nome": "Tavolo plastica bianco  80x80 cm", "prezzo": 5.0}, {"nome": "Tavolinetto fumo 50x50  h 45", "prezzo": 5.0}], "Sedute e Sofà": [{"nome": "Sedie thonnet vienna impilabile", "prezzo": 4.0}, {"nome": "Fantasmini imbottiti per sedia thonet", "prezzo": 4.0}, {"nome": "Sedia/Poltroncina da giardino", "prezzo": 10.0}, {"nome": "Sedie plastica bianca", "prezzo": 1.5}, {"nome": "Set: 1 divano, 2 poltrone, 1 tavolino, c/cuscini", "prezzo": 100.0}, {"nome": "Set: 1 divano, 2 poltrone, 1 tavolino, illuminati", "prezzo": 180.0}], "Tovagliato": [{"nome": "Tovaglia 180x180 cm  vari colori", "prezzo": 5.1}, {"nome": "Tovaglia Ø 290 cm  vari colori", "prezzo": 12.0}, {"nome": "Tovaglia Ø 310 cm  vari colori", "prezzo": 12.0}, {"nome": "Tovagliolo  vari colori", "prezzo": 0.35}, {"nome": "Gonnellina da buffet colore avorio (a metro)", "prezzo": 7.0}], "Posateria argento": [{"nome": "Forchetta tavola \"Broggi\"", "prezzo": 0.45}, {"nome": "Forchetta pesce   \"Broggi\"", "prezzo": 0.5}, {"nome": "Forchetta frutta   \"Broggi\"", "prezzo": 0.45}, {"nome": "Forchetta dolce   \"Broggi\"", "prezzo": 0.35}, {"nome": "Cucchiaio a servire   \"Broggi\"", "prezzo": 0.9}, {"nome": "Cucchiaio frutta  \"Broggi\"", "prezzo": 0.6}, {"nome": "Cucchiaino caffè \"Broggi\"", "prezzo": 0.28}, {"nome": "Coltello tavola  \"Broggi\"", "prezzo": 0.9}, {"nome": "Coltello pesce  \"Broggi\"", "prezzo": 1.0}, {"nome": "Coltello frutta  \"Broggi\"", "prezzo": 0.7}], "Posateria inox": [{"nome": "Forchetta tavola \"Salvinelli\"", "prezzo": 0.35}, {"nome": "Forchetta pesce  \"Salvinelli\"", "prezzo": 0.4}, {"nome": "Forchetta frutta  \"Salvinelli\"", "prezzo": 0.35}, {"nome": "Cucchiaio tavola \"Salvinelli\"", "prezzo": 0.55}, {"nome": "Cucchiaino thè \"Salvinelli\"", "prezzo": 0.2}, {"nome": "Coltello tavola  \"Salvinelli\"", "prezzo": 0.7}, {"nome": "Coltello pesce \"Salvinelli\"", "prezzo": 0.8}], "Posateria": [{"nome": "Forchetta tavola Inox", "prezzo": 0.25}, {"nome": "Forchetta dolce Inox", "prezzo": 0.25}, {"nome": "Cucchiaio tavola Inox", "prezzo": 0.5}, {"nome": "Coltello tavolo Inox", "prezzo": 0.5}, {"nome": "Cucchiaino caffè Inox", "prezzo": 0.15}], "Mise en place sposi": [{"nome": "Palchetto  sposi", "prezzo": 150.0}, {"nome": "Tavolo sposi completo di tovagliato e sedie", "prezzo": 120.0}, {"nome": "Poltrone imperiali sposi", "prezzo": 30.0}, {"nome": "Kit Posate sposi \"lacca oro\"", "prezzo": 80.0}], "Segnaposto": [{"nome": "Segnaposto argento Ø 31,5 \"Broggi\"", "prezzo": 3.0}, {"nome": "Segnaposto in porcellana", "prezzo": 1.5}], "Porcellana": [{"nome": "Piatto piano \" Broggi\" Ø 27", "prezzo": 0.9}, {"nome": "Piatto piano \"Broggi\" Ø 21", "prezzo": 0.7}, {"nome": "Piatto fondo cappello di prete \"Broggi\" 29/14 cm", "prezzo": 2.9}, {"nome": "Piatto Ø 19", "prezzo": 0.5}, {"nome": "Piatto dessert  Ø 16", "prezzo": 0.3}, {"nome": "Coppette macedonia", "prezzo": 0.3}, {"nome": "Tazzina caffè (c/logo caffè)", "prezzo": 0.5}, {"nome": "Tazza cappuccino (c/logo caffè)", "prezzo": 0.8}, {"nome": "Cocotte in terracotta", "prezzo": 0.3}, {"nome": "Piatto casseruola  in alluminio cm 11", "prezzo": 1.5}], "Cristalleria": [{"nome": "Bicchieri cortina cl 31", "prezzo": 0.15}, {"nome": "Bicchiere Flutes cl 17,5 \"Odelia\"", "prezzo": 0.2}, {"nome": "Bicchiere vino bianco cl 26,7 \"Odelia\"", "prezzo": 0.2}, {"nome": "Bicchiere vino rosso cl 48 \"Riserva Barolo\"", "prezzo": 0.4}, {"nome": "Bicchiere acqua cl 30 \"tambler Fiore\"", "prezzo": 0.15}, {"nome": "Caraffa lt 1 per acqua e bibite", "prezzo": 2.5}], "Oggettistica per buffet": [{"nome": "Spumantiera argento Ø 75 cm   h 53", "prezzo": 200.0}, {"nome": "Spumantiera argento Ø 50 cm  h 34", "prezzo": 100.0}, {"nome": "Secchiello argento Ø 29 cm", "prezzo": 50.0}, {"nome": "Secchiello argento Ø 21 cm   h 18", "prezzo": 20.0}, {"nome": "Fontana di cioccolato h 90 cm", "prezzo": 150.0}, {"nome": "Candelabro argento 16 fiamme  h 150 cm", "prezzo": 150.0}, {"nome": "Candelabro argento 5 fiamme h 75 cm", "prezzo": 25.0}, {"nome": "Portatovaglioli argento da buffet", "prezzo": 7.0}, {"nome": "Distributore  succhi da 8 l", "prezzo": 60.0}, {"nome": "Dispenser succhi da 5 l", "prezzo": 50.0}, {"nome": "Affettatrice a manovella (Berkel)", "prezzo": 400.0}, {"nome": "Apriostriche C/base in legno", "prezzo": 40.0}, {"nome": "Portamenu'/Tableau Mariage h 150 Arg.", "prezzo": 50.0}, {"nome": "Bauletto sigari con bicchieri cognac", "prezzo": 100.0}, {"nome": "Carretto gelati", "prezzo": 350.0}, {"nome": "Porta gelati 3 pozzetti", "prezzo": 150.0}, {"nome": "Colonna scenografica h 110", "prezzo": 15.0}, {"nome": "Alzata Vassoio a 2 piani argento", "prezzo": 240.0}, {"nome": "Pinze varie", "prezzo": 1.0}, {"nome": "Delimitatore percorso con nastro colore blu", "prezzo": 20.0}, {"nome": "Espositore per buffet", "prezzo": 350.0}], "Oggettistica per tavolo": [{"nome": "Candelabro argento 5 fiamme  h 40 cm", "prezzo": 4.0}, {"nome": "Candela cm 25", "prezzo": 0.3}, {"nome": "Cestino pane argento", "prezzo": 4.0}, {"nome": "Cestino pane vimini Ø 20", "prezzo": 0.5}, {"nome": "Portapane/Vassoio Acc. Arg. Ø 16", "prezzo": 1.0}, {"nome": "Piantana secchiello spumante inox 18/10", "prezzo": 9.0}, {"nome": "Secchiello spumante inox 18/10", "prezzo": 2.5}, {"nome": "Suarglass trasparente", "prezzo": 1.0}, {"nome": "Secchiello ghiaccio acciaio mini c/pinze", "prezzo": 0.8}, {"nome": "Cloche inox 18/10", "prezzo": 6.0}], "Arredo giardino": [{"nome": "Ombrelloni  3x4 m  centrali", "prezzo": 150.0}, {"nome": "Ombrelloni 4x4 m a sbalzo", "prezzo": 300.0}, {"nome": "Ombrellone Ø 3 m a sbalzo", "prezzo": 30.0}, {"nome": "Divisione noleggio", "prezzo": 0.0}, {"nome": "Gazebo 4x4 m", "prezzo": 300.0}, {"nome": "Gazebo 5x5 m", "prezzo": 450.0}, {"nome": "Sottotenda per gazebo", "prezzo": 350.0}, {"nome": "Prato sintetico (moquet) mq", "prezzo": 10.0}, {"nome": "Lanterne a petrolio cm 30", "prezzo": 2.0}, {"nome": "Fontane monumentali ad acqua", "prezzo": 30.0}, {"nome": "Cubi bianchi illuminati", "prezzo": 30.0}, {"nome": "Puffo \" pomodone\"", "prezzo": 30.0}, {"nome": "Fungo radiante per riscaldamento c/ bombola", "prezzo": 90.0}, {"nome": "Fungo radiante per riscaldamento s/ bombola", "prezzo": 70.0}], "Macchina Mini Donuts": [{"nome": "Macchina mini Donuts/Ciambelle con carrello", "prezzo": 900.0}], "Arredamento bar": [{"nome": "Angolo american bar", "prezzo": 400.0}, {"nome": "Bicchiere Flutes illuminato cm 184", "prezzo": 45.0}, {"nome": "Bicchiere Margarita illuminato cm 114", "prezzo": 45.0}, {"nome": "Espositore bar", "prezzo": 50.0}, {"nome": "Sgabello bar", "prezzo": 15.0}, {"nome": "Angolo american bar+2 esp.+2 sgab.+2 bicch.", "prezzo": 550.0}, {"nome": "Macchina caffè espresso \"Illy\"", "prezzo": 150.0}, {"nome": "Macchina caffè professionale con banco", "prezzo": 300.0}, {"nome": "Macchina orzo e cioccolato", "prezzo": 60.0}, {"nome": "Montapanna da banco", "prezzo": 290.0}], "Attrezzature per cucina": [{"nome": "Cucina da campo", "prezzo": 40.0}, {"nome": "Cucina americana 1 fuoco", "prezzo": 30.0}, {"nome": "Piastra induzione Ø 28 nera slim", "prezzo": 60.0}, {"nome": "Forno Zanussi 5 mezze teglie", "prezzo": 300.0}, {"nome": "Forno Zanussi 10 teglie intere", "prezzo": 600.0}, {"nome": "Forno Elettrolux  10 teglie intere", "prezzo": 600.0}, {"nome": "Teglia 1/2  mezza", "prezzo": 5.0}, {"nome": "Teglia 1/1  intera", "prezzo": 9.0}, {"nome": "Griglia a carbone 70x150 cm acciaio inox", "prezzo": 200.0}, {"nome": "Brasiera", "prezzo": 300.0}, {"nome": "Frigo a pozzetto", "prezzo": 120.0}, {"nome": "Armadio Congelatore a 1 anta", "prezzo": 280.0}, {"nome": "Armadio frigorifero a 2 ante", "prezzo": 330.0}, {"nome": "Lavastoviglie", "prezzo": 250.0}, {"nome": "Lavello in acciaio a 1 vasca", "prezzo": 100.0}, {"nome": "Lavello in acciaio a 2 vasche", "prezzo": 150.0}, {"nome": "Teglia Gastronorm 1/1 (1/2 teglia)", "prezzo": 5.0}, {"nome": "Teglia Gastronorm 2/1 (intera)", "prezzo": 9.0}, {"nome": "Vassoi ovali da 100 cm", "prezzo": 10.0}, {"nome": "Vassoi ovali da 90 cm", "prezzo": 9.0}, {"nome": "Vassoi ovali da 60x30 cm", "prezzo": 4.0}, {"nome": "Vassoi ovali da 50 cm", "prezzo": 3.0}, {"nome": "Vassoi rotondi da 80 cm", "prezzo": 8.0}, {"nome": "Vassoi specchio da 80 cm", "prezzo": 12.0}, {"nome": "Vassoi specchio da 40 cm", "prezzo": 6.0}, {"nome": "Vassoio con manico", "prezzo": 5.0}, {"nome": "Pirofile in porcellana bianca", "prezzo": 3.0}, {"nome": "Vassoi porcellana varie misure", "prezzo": 4.0}, {"nome": "Pentola paella grande completa di fornellone", "prezzo": 200.0}, {"nome": "Pentola paella piccola", "prezzo": 100.0}], "Automezzi": [{"nome": "Camion frigorifero", "prezzo": 700.0}, {"nome": "Camion con pedana", "prezzo": 600.0}]};
+</script>
+
+<!-- ══ PDF PREVIEW ══ -->
+<div id="pdf-preview" style="display:none;position:fixed;inset:0;background:#fff;z-index:9999;overflow-y:auto;padding:0">
+  <div style="width:100%;max-width:760px;margin:0 auto;font-family:-apple-system,'Helvetica Neue',sans-serif;color:#000;display:block">
+
+  <!-- PAGINA 1: Riepilogo noleggio -->
+  <div class="pdf-page-1" style="padding:32px 40px;box-sizing:border-box;display:block">
+
+    <!-- Header -->
+    <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:32px">
+      <div>
+        <div style="font-size:22px;font-weight:700;letter-spacing:-0.5px">Preventivo Noleggio</div>
+        <div id="pdf-numero" style="font-size:13px;color:#888;margin-top:4px"></div>
+      </div>
+      <button class="no-print" onclick="closePdfPreview()" style="
+        background:#F2F2F7;border:none;border-radius:50%;width:36px;height:36px;
+        font-size:18px;cursor:pointer;display:flex;align-items:center;justify-content:center">✕</button>
+    </div>
+
+    <!-- Cliente -->
+    <div style="margin-bottom:24px">
+      <div style="font-size:11px;font-weight:600;color:#888;letter-spacing:.5px;text-transform:uppercase;margin-bottom:6px">Cliente</div>
+      <div id="pdf-cliente" style="font-size:17px;font-weight:600"></div>
+      <div id="pdf-telefono" style="font-size:14px;color:#555;margin-top:2px"></div>
+    </div>
+
+    <!-- Data e modalità -->
+    <div style="display:flex;gap:24px;margin-bottom:24px">
+      <div style="flex:1">
+        <div style="font-size:11px;font-weight:600;color:#888;letter-spacing:.5px;text-transform:uppercase;margin-bottom:6px">Data</div>
+        <div id="pdf-data" style="font-size:15px;font-weight:500"></div>
+      </div>
+      <div style="flex:1">
+        <div style="font-size:11px;font-weight:600;color:#888;letter-spacing:.5px;text-transform:uppercase;margin-bottom:6px">Modalità</div>
+        <div id="pdf-modalita" style="font-size:15px;font-weight:500"></div>
+        <div id="pdf-oraluogo" style="font-size:13px;color:#555;margin-top:2px"></div>
+      </div>
+    </div>
+
+    <!-- Articoli -->
+    <div style="margin-bottom:24px">
+      <div style="font-size:11px;font-weight:600;color:#888;letter-spacing:.5px;text-transform:uppercase;margin-bottom:10px">Attrezzatura</div>
+      <table id="pdf-table" style="width:100%;border-collapse:collapse;font-size:14px">
+        <thead>
+          <tr style="border-bottom:2px solid #000">
+            <th style="text-align:left;padding:6px 8px 6px 0;font-weight:600">Articolo</th>
+            <th style="text-align:right;padding:6px 0;font-weight:600;white-space:nowrap">P.Unit.</th>
+            <th style="text-align:right;padding:6px 0;font-weight:600">Qtà</th>
+            <th style="text-align:right;padding:6px 0 6px 8px;font-weight:600">Totale</th>
+          </tr>
+        </thead>
+        <tbody id="pdf-righe"></tbody>
+        <tfoot>
+          <tr style="border-top:2px solid #000">
+            <td colspan="3" style="padding:10px 0 0;font-weight:700;font-size:15px">Totale</td>
+            <td id="pdf-totale" style="padding:10px 0 0 8px;text-align:right;font-weight:700;font-size:16px"></td>
+          </tr>
+        </tfoot>
+      </table>
+    </div>
+
+    <!-- Note -->
+    <div id="pdf-note-wrap" style="display:none;margin-bottom:24px">
+      <div style="font-size:11px;font-weight:600;color:#888;letter-spacing:.5px;text-transform:uppercase;margin-bottom:6px">Note</div>
+      <div id="pdf-note" style="font-size:14px;color:#333;line-height:1.5"></div>
+    </div>
+
+    <!-- Footer -->
+    <div style="border-top:1px solid #e0e0e0;padding-top:16px;font-size:12px;color:#aaa;text-align:center">
+      Recruiting Delizie · Documento generato il <span id="pdf-oggi"></span>
+    </div>
+
+  </div><!-- fine pdf-page-1 -->
+
+  <!-- PAGINA 2: Condizioni di Noleggio -->
+  <div class="pdf-page-2" style="padding:32px 40px;box-sizing:border-box;display:block;page-break-before:always;break-before:page">
+      <div style="font-size:18px;font-weight:700;letter-spacing:-0.3px;margin-bottom:24px;border-bottom:2px solid #000;padding-bottom:10px">
+        Condizioni di Noleggio
+      </div>
+
+      <div style="font-size:13px;line-height:1.7;color:#222">
+
+        <p style="margin-bottom:14px"><strong>Art. 1) Condizioni di Pagamento</strong><br>
+        Il pagamento dovrà avvenire con acconto del 30% alla conferma dell'ordine e saldo con titolo prima dello scarico della merce.</p>
+
+        <p style="margin-bottom:14px"><strong>Art. 2) Clausole accessorie - Penali</strong><br>
+        La merce dovrà essere conservata con cura e dovrà presentarsi al ritiro nelle stesse condizioni in cui è stata consegnata.<br>
+        Il danneggiamento della merce noleggiata prevede il risarcimento totale della merce stessa.<br>
+        La mancata osservanza delle condizioni del pagamento non permetterà lo scarico della merce.</p>
+
+        <p style="margin-bottom:14px"><strong>Art. 3) Consegna del materiale</strong><br>
+        Al momento della consegna e dello scarico della merce dovrà essere sempre presente un responsabile del Cliente.<br>
+        Al momento della consegna del materiale verrà consegnata al responsabile, unitamente alla bolla, un modulo per l'inventario dei rientri e delle eventuali rotture o smarrimenti.<br>
+        Il materiale verrà consegnato pulito e sterilizzato.<br>
+        Eventuali contestazioni del materiale devono essere presentate il giorno della consegna.<br>
+        Lo scarico della merce verrà effettuato nel posto dove il mezzo ha la possibilità di arrivare, ed ad una distanza massima di 10 metri dal mezzo stesso.<br>
+        Gli orari concordati preventivamente per la consegna dovranno essere rigorosamente rispettati.</p>
+
+        <p style="margin-bottom:14px"><strong>Art. 4) Ritiro del materiale</strong><br>
+        Al momento del ritiro del materiale dovrà essere presente un vostro responsabile, che insieme alla nostra persona incaricata al ritiro controllerà, voce per voce, che il materiale ci sia tutto come alla consegna e che non ci siano pezzi rotti. Tutti i pezzi rotti devono essere messi in evidenza.<br>
+        Gli eventuali pezzi mancanti o rotti o parzialmente danneggiati al momento del ritiro del materiale verranno addebitati al prezzo di listino d'acquisto. Nel caso in cui non ci fosse la possibilità di conteggiare la merce in vostra presenza, farà fede il conteggio che faremo noi a magazzino e solo successivamente verrà inoltrata nostra comunicazione scritta con relativo addebito tramite fattura con pagamento a vista attraverso bonifico bancario o assegno.</p>
+
+        <p style="margin-bottom:14px"><strong>Art. 5) Regole generali</strong><br>
+        Nel caso possano verificarsi incidenti o danni di ogni genere agli impianti, ai mezzi difficoltà di approvvigionamento di materie prime, mancanza di energia elettrica, scioperi o altro e in casi di forza maggiore comunque non imputabili a responsabilità di Delizie di Presta Francesco la stessa potrà decidere di sospendere o annullare le ordinazioni senza che il cliente possa avanzare pretese di risarcimento danni.</p>
+
+        <p style="margin-bottom:14px"><strong>Art. 6) Controversie</strong><br>
+        Per qualsiasi controversie è competente il foro di Cosenza.</p>
+
+      </div>
+
+      <!-- Firma -->
+      <div style="margin-top:48px;display:flex;gap:40px">
+        <div style="flex:1;border-top:1px solid #aaa;padding-top:8px;font-size:12px;color:#888;text-align:center">
+          Timbro e firma del Cliente
+        </div>
+        <div style="flex:1;border-top:1px solid #aaa;padding-top:8px;font-size:12px;color:#888;text-align:center">
+          Firma Delizie di Presta Francesco
+        </div>
+      </div>
+  </div><!-- fine pdf-page-2 -->
+
+  <!-- Pulsante stampa (solo schermo) -->
+  <div class="no-print" style="padding:20px 40px 40px;display:flex;gap:10px">
+    <button onclick="triggerPrint()" style="
+      flex:1;padding:15px;background:#000;color:#fff;border:none;border-radius:12px;
+      font-family:-apple-system,sans-serif;font-size:16px;font-weight:600;cursor:pointer">
+      ↓ Salva / Stampa PDF
+    </button>
+  </div>
+
+  </div><!-- fine container -->
+</div>
+
+<!-- LIGHTBOX FOTO -->
+<div id="photo-lightbox" onclick="closeLightbox()">
+  <button id="photo-lightbox-close" onclick="closeLightbox()">✕</button>
+  <img id="photo-lightbox-img" src="" alt="" onclick="event.stopPropagation()">
+  <div id="photo-lightbox-cap"></div>
+  <button id="photo-share-btn" onclick="event.stopPropagation()" style="
+    display:none; align-items:center; gap:8px;
+    margin-top:20px; padding:13px 28px; border-radius:14px; border:none;
+    background:#fff; color:#000;
+    font-family:var(--font); font-size:16px; font-weight:600; cursor:pointer;">
+    ↗ Condividi foto
+  </button>
+</div>
+</body>
+</html>
